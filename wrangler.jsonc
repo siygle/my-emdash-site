@@ -9,7 +9,7 @@
 			"binding": "DB",
 			"database_name": "my-emdash-site",
 			// Run `wrangler d1 create my-emdash-site` and paste the real ID here for deploy
-			"database_id": "e3505262-b98c-405c-bedd-d82e086aae59",
+			"database_id": "bd7cd5de-c820-4c3b-ad22-856b6ff20f0c",
 		},
 	],
 	"r2_buckets": [
