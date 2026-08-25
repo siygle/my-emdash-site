@@ -20,10 +20,6 @@ const contentDir = contentDirArg
 	: "/home/ferrari/vibe-coding/sy-website/src/content/newsletter";
 const endpoint = process.env.EMDASH_MCP_URL;
 const token = process.env.EMDASH_TOKEN;
-const sourceSite = process.env.SOURCE_SITE || "https://sylee.dev";
-const sourceRepoBase =
-	process.env.SOURCE_REPO_BASE ||
-	"https://github.com/siygle/sy-website/blob/master/src/content/newsletter";
 const bskyCachePath = process.env.BSKY_OEMBED_CACHE || "/tmp/emdash-bsky-oembed-cache.json";
 const bskyCache = existsSync(bskyCachePath)
 	? JSON.parse(readFileSync(bskyCachePath, "utf8"))
@@ -186,15 +182,7 @@ for (const file of files) {
 	const { fm, body } = parseFrontmatter(raw);
 	const before = { ...summary.stats };
 	const transformed = await transformBody(body, summary.stats);
-	const sourceUrl = `${sourceSite}/newsletter/${slug}`;
-	const sourceMarkdown = `${sourceRepoBase}/${file}`;
-	const content = [
-		`> 原文網址： [${sourceUrl}](${sourceUrl})`,
-		`> 原始 Markdown： [GitHub](${sourceMarkdown})`,
-		fm.date ? `> 原始日期： ${fm.date}` : "",
-		"",
-		transformed,
-	].filter(Boolean).join("\n");
+	const content = transformed;
 	const itemStats = Object.fromEntries(Object.entries(summary.stats).map(([k, v]) => [k, v - before[k]]));
 	try {
 		if (apply) {
