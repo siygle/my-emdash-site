@@ -5,6 +5,7 @@ import { formsPlugin } from "@emdash-cms/plugin-forms";
 import webhookNotifierPlugin from "@emdash-cms/plugin-webhook-notifier";
 import { defineConfig, fontProviders } from "astro/config";
 import emdash from "emdash/astro";
+import { socialEmbedsPlugin } from "emdash-plugin-social-embeds";
 
 export default defineConfig({
 	output: "server",
@@ -18,7 +19,7 @@ export default defineConfig({
 		emdash({
 			database: d1({ binding: "DB", session: "auto" }),
 			storage: r2({ binding: "MEDIA" }),
-			plugins: [formsPlugin()],
+			plugins: [formsPlugin(), socialEmbedsPlugin()],
 			sandboxed: [webhookNotifierPlugin],
 			sandboxRunner: sandbox(),
 			marketplace: "https://marketplace.emdashcms.com",
