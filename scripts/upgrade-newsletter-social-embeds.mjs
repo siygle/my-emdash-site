@@ -165,6 +165,10 @@ async function transformBody(body, stats) {
 	return out.join("\n").trim();
 }
 
+function stripLeadingSeparator(body) {
+	return String(body || "").replace(/^\s*---\s*(?:\n+|$)/, "").trimStart();
+}
+
 function makeExcerpt(description, body) {
 	if (description?.trim()) return description.trim();
 	return body.replace(/[#>*_`\[\]()!-]/g, "").replace(/\s+/g, " ").trim().slice(0, 180);
@@ -182,16 +186,22 @@ for (const file of files) {
 	const { fm, body } = parseFrontmatter(raw);
 	const before = { ...summary.stats };
 	const transformed = await transformBody(body, summary.stats);
-	const content = transformed;
+	const content = stripLeadingSeparator(transformed);
 	const itemStats = Object.fromEntries(Object.entries(summary.stats).map(([k, v]) => [k, v - before[k]]));
 	try {
 		if (apply) {
+			const publishedAt = fm.date ? `${fm.date}T00:00:00+08:00` : undefined;
 			await mcp("content_update", {
 				collection: "posts",
 				id: slug,
-				data: { title: fm.title || slug, excerpt: makeExcerpt(fm.description, transformed), content },
-				publishedAt: fm.date ? `${fm.date}T00:00:00+08:00` : undefined,
+				data: { title: fm.title || slug, excerpt: makeExcerpt(fm.description, content), content },
+				publishedAt,
 				taxonomies: { category: ["newsletter"], tag: ["newsletter"] },
+			});
+			await mcp("content_publish", {
+				collection: "posts",
+				id: slug,
+				publishedAt,
 			});
 		}
 		summary.updated++;
