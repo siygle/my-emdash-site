@@ -20,10 +20,6 @@ const contentDir = contentDirArg
 	: "/home/ferrari/vibe-coding/sy-website/src/content/newsletter";
 const endpoint = process.env.EMDASH_MCP_URL;
 const token = process.env.EMDASH_TOKEN;
-const sourceSite = process.env.SOURCE_SITE || "https://sylee.dev";
-const sourceRepoBase =
-	process.env.SOURCE_REPO_BASE ||
-	"https://github.com/siygle/sy-website/blob/master/src/content/newsletter";
 const bskyCachePath = process.env.BSKY_OEMBED_CACHE || "/tmp/emdash-bsky-oembed-cache.json";
 const bskyCache = existsSync(bskyCachePath)
 	? JSON.parse(readFileSync(bskyCachePath, "utf8"))
@@ -169,6 +165,10 @@ async function transformBody(body, stats) {
 	return out.join("\n").trim();
 }
 
+function stripLeadingSeparator(body) {
+	return String(body || "").replace(/^\s*---\s*(?:\n+|$)/, "").trimStart();
+}
+
 function makeExcerpt(description, body) {
 	if (description?.trim()) return description.trim();
 	return body.replace(/[#>*_`\[\]()!-]/g, "").replace(/\s+/g, " ").trim().slice(0, 180);
@@ -186,24 +186,22 @@ for (const file of files) {
 	const { fm, body } = parseFrontmatter(raw);
 	const before = { ...summary.stats };
 	const transformed = await transformBody(body, summary.stats);
-	const sourceUrl = `${sourceSite}/newsletter/${slug}`;
-	const sourceMarkdown = `${sourceRepoBase}/${file}`;
-	const content = [
-		`> 原文網址： [${sourceUrl}](${sourceUrl})`,
-		`> 原始 Markdown： [GitHub](${sourceMarkdown})`,
-		fm.date ? `> 原始日期： ${fm.date}` : "",
-		"",
-		transformed,
-	].filter(Boolean).join("\n");
+	const content = stripLeadingSeparator(transformed);
 	const itemStats = Object.fromEntries(Object.entries(summary.stats).map(([k, v]) => [k, v - before[k]]));
 	try {
 		if (apply) {
+			const publishedAt = fm.date ? `${fm.date}T00:00:00+08:00` : undefined;
 			await mcp("content_update", {
 				collection: "posts",
 				id: slug,
-				data: { title: fm.title || slug, excerpt: makeExcerpt(fm.description, transformed), content },
-				publishedAt: fm.date ? `${fm.date}T00:00:00+08:00` : undefined,
+				data: { title: fm.title || slug, excerpt: makeExcerpt(fm.description, content), content },
+				publishedAt,
 				taxonomies: { category: ["newsletter"], tag: ["newsletter"] },
+			});
+			await mcp("content_publish", {
+				collection: "posts",
+				id: slug,
+				publishedAt,
 			});
 		}
 		summary.updated++;
