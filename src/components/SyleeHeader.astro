@@ -1,5 +1,7 @@
 ---
 const isLoggedIn = !!Astro.locals.user;
+const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.218.127.324.2.728.232 1.082.093l1.216-.477a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a7.723 7.723 0 010 .356c-.007.379.138.751.431.992l1.003.827c.424.35.534.955.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.477c-.354-.139-.758-.107-1.082.093a6.57 6.57 0 01-.218.127c-.332.184-.582.496-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.218-.127c-.324-.2-.728-.232-1.082-.093l-1.216.477a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.003-.827c.293-.241.438-.613.431-.992a7.723 7.723 0 010-.356c.007-.379-.138-.751-.431-.992l-1.003-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.216.477c.354.139.758.107 1.082-.093.071-.044.144-.087.218-.127.332-.184.582-.496.645-.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
+
 const navItems = [
 	{
 		href: "/blog",
@@ -51,7 +53,12 @@ const navItems = [
 					<span>{item.label}</span>
 				</a>
 			))}
-			{isLoggedIn && <a href="/_emdash/admin" class="sylee-admin">Admin</a>}
+			{isLoggedIn && (
+				<a href="/_emdash/admin" class="sylee-nav-icon sylee-admin-icon" aria-label="Admin" title="Admin">
+					<Fragment set:html={adminIcon} />
+					<span>Admin</span>
+				</a>
+			)}
 		</div>
 	</nav>
 	<div class="sylee-mobile-nav" data-mobile-menu>
@@ -145,12 +152,23 @@ const navItems = [
 		white-space: nowrap;
 	}
 	.sylee-nav-icon:hover span { opacity: 1; }
-	.sylee-admin {
-		font-size: 0.875rem;
+	.sylee-admin-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		margin-left: 0.15rem;
+		border: 1px solid rgba(13, 148, 136, 0.18);
+		border-radius: 999px;
+		background: rgba(240, 253, 250, 0.75);
 		color: #0d9488;
-		text-decoration: none;
 	}
-	.sylee-admin:hover { text-decoration: underline; }
+	.sylee-admin-icon:hover {
+		border-color: rgba(13, 148, 136, 0.38);
+		background: #ccfbf1;
+		color: #0f766e;
+	}
 	.sylee-menu-button {
 		display: none;
 		padding: 0.75rem;
