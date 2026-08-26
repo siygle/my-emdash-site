@@ -122,7 +122,7 @@ export async function getAuthorFeed(
     throw new Error(`Failed to fetch feed: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { feed?: BlueskyFeedItem[] };
   return data.feed || [];
 }
 
@@ -142,7 +142,7 @@ export async function getPostThread(
     return null;
   }
 
-  const data = await response.json();
+  const data = await response.json() as { thread?: BlueskyThreadNode };
   return data.thread || null;
 }
 

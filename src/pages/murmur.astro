@@ -1,5 +1,5 @@
 ---
-import Base from "../layouts/Base.astro";
+import SyleeLayout from "../layouts/SyleeLayout.astro";
 import BlueskyPost from "../components/bluesky/BlueskyPost.astro";
 import BlueskyThread from "../components/bluesky/BlueskyThread.astro";
 import { getFeedWithThreads, type ProcessedFeedItem } from "../lib/bluesky";
@@ -54,11 +54,11 @@ if (!feedData.error && feedData.items.length > 0) {
 }
 ---
 
-<Base title="Murmur" description="Thoughts and musings from Bluesky">
-	<div class="murmur">
-		<header class="murmur__header">
-			<h1 class="murmur__title">Murmur</h1>
-			<p class="murmur__subtitle">
+<SyleeLayout title="Murmur - Sy Lee" description="My thoughts and musings from Bluesky">
+	<div class="sylee-container">
+		<header class="sylee-murmur-header reveal">
+			<h1>Murmur</h1>
+			<p>
 				Thoughts from
 				<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
 					@{BLUESKY_HANDLE}
@@ -68,21 +68,21 @@ if (!feedData.error && feedData.items.length > 0) {
 		</header>
 
 		{feedData.error ? (
-			<div class="murmur__error">
-				<p class="murmur__error-title">Unable to load posts</p>
-				<p class="murmur__error-detail">{feedData.error}</p>
+			<div class="sylee-error">
+				<p><strong>Unable to load posts</strong></p>
+				<p>{feedData.error}</p>
 				<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
 					View on Bluesky instead
 				</a>
 			</div>
 		) : weekGroups.length === 0 ? (
-			<p class="murmur__empty">No posts yet.</p>
+			<p>No posts yet.</p>
 		) : (
-			<div class="murmur__groups">
-				{weekGroups.map((group) => (
-					<section class="murmur__group">
-						<h2 class="murmur__group-label">{group.label}</h2>
-						<div class="murmur__items">
+			<div class="sylee-murmur-groups">
+				{weekGroups.map((group, groupIndex) => (
+					<section class="sylee-murmur-group reveal" style={`transition-delay: ${groupIndex * 100}ms`}>
+						<h2>{group.label}</h2>
+						<div class="sylee-murmur-items">
 							{group.items.map((item) =>
 								item.isThread && item.threadPosts ? (
 									<BlueskyThread posts={item.threadPosts} showDate={true} />
@@ -96,102 +96,20 @@ if (!feedData.error && feedData.items.length > 0) {
 			</div>
 		)}
 
-		<footer class="murmur__footer">
+		<footer class="sylee-murmur-footer">
 			<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
 				Follow @{BLUESKY_HANDLE} on Bluesky
 			</a>
 		</footer>
 	</div>
-</Base>
-
-<style>
-	.murmur {
-		max-width: 720px;
-		margin: 0 auto;
-		padding: var(--spacing-12) var(--spacing-5) var(--spacing-16);
-	}
-	.murmur__header {
-		margin-bottom: var(--spacing-8);
-	}
-	.murmur__title {
-		font-size: var(--font-size-3xl);
-		font-weight: 700;
-		letter-spacing: var(--tracking-tight);
-	}
-	.murmur__subtitle {
-		color: var(--color-text-secondary);
-		margin-top: var(--spacing-2);
-	}
-	.murmur__subtitle a {
-		color: var(--color-accent);
-	}
-	.murmur__subtitle a:hover {
-		text-decoration: underline;
-	}
-	.murmur__groups {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-8);
-	}
-	.murmur__group-label {
-		font-size: var(--font-size-sm);
-		font-weight: 500;
-		color: var(--color-muted);
-		margin-bottom: var(--spacing-4);
-		position: sticky;
-		top: var(--nav-height);
-		background: color-mix(in srgb, var(--color-bg) 80%, transparent);
-		backdrop-filter: blur(8px);
-		padding: var(--spacing-2) 0;
-	}
-	.murmur__items {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-4);
-	}
-	.murmur__empty {
-		color: var(--color-text-secondary);
-	}
-	.murmur__error {
-		padding: var(--spacing-4);
-		background: color-mix(in srgb, #ef4444 8%, var(--color-bg));
-		border: 1px solid color-mix(in srgb, #ef4444 25%, transparent);
-		border-radius: var(--radius-lg);
-		color: #b91c1c;
-	}
-	.murmur__error-title {
-		font-weight: 500;
-	}
-	.murmur__error-detail {
-		font-size: var(--font-size-sm);
-		margin-top: var(--spacing-1);
-	}
-	.murmur__error a {
-		color: #b91c1c;
-		text-decoration: underline;
-		font-size: var(--font-size-sm);
-		margin-top: var(--spacing-2);
-		display: inline-block;
-	}
-	.murmur__footer {
-		margin-top: var(--spacing-12);
-		padding-top: var(--spacing-8);
-		border-top: 1px solid var(--color-border);
-		text-align: center;
-	}
-	.murmur__footer a {
-		color: var(--color-accent);
-	}
-	.murmur__footer a:hover {
-		text-decoration: underline;
-	}
-
-	@media (max-width: 600px) {
-		.murmur {
-			padding: var(--spacing-8) var(--spacing-4) var(--spacing-12);
-		}
-		.murmur__title {
-			font-size: var(--font-size-2xl);
-		}
-	}
-</style>
+		<script>
+			function initRevealObserver() {
+				const observer = new IntersectionObserver((entries) => {
+					entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+				}, { threshold: 0.1, rootMargin: "-20px" });
+				document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+			}
+			initRevealObserver();
+			document.addEventListener("astro:after-swap", initRevealObserver);
+		</script>
+</SyleeLayout>

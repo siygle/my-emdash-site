@@ -1,6 +1,6 @@
 ---
 import { getTaxonomyTerms, getEmDashCollection, getTermsForEntries, type TaxonomyTerm } from "emdash";
-import Base from "../../layouts/Base.astro";
+import SyleeLayout from "../../layouts/SyleeLayout.astro";
 
 const [terms, { entries: posts, cacheHint }] = await Promise.all([
 	getTaxonomyTerms("tag"),
@@ -24,7 +24,7 @@ const tags: TagWithCount[] = (terms ?? [])
 	.sort((a: TagWithCount, b: TagWithCount) => b.count - a.count || a.label.localeCompare(b.label));
 ---
 
-<Base title="Tags - Sy Lee" description="Browse posts by tag">
+<SyleeLayout title="Tags - Sy Lee" description="Browse posts by tag">
 	<div class="sylee-tags-page">
 		<h1 class="sylee-tags-title reveal">Tags</h1>
 		<div class="sylee-tags-cloud reveal reveal-delay-1">
@@ -39,50 +39,8 @@ const tags: TagWithCount[] = (terms ?? [])
 			})}
 		</div>
 	</div>
-</Base>
+</SyleeLayout>
 
-<style>
-	.sylee-tags-page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3rem 1.25rem;
-	}
-	.sylee-tags-title {
-		font-size: 1.875rem;
-		line-height: 2.25rem;
-		font-weight: 700;
-		color: #111827;
-		margin: 0 0 2rem;
-	}
-	.sylee-tags-cloud {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-	.sylee-tag {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		padding: 0.375rem 0.75rem;
-		background: #f3f4f6;
-		color: #374151;
-		border-radius: 999px;
-		text-decoration: none;
-		transition:
-			background 150ms ease,
-			color 150ms ease;
-	}
-	.sylee-tag:hover { background: #ccfbf1; color: #0f766e; }
-	.sylee-tag.is-large { font-size: 1.125rem; }
-	.sylee-tag.is-medium { font-size: 1rem; }
-	.sylee-tag.is-small { font-size: 0.875rem; }
-	.sylee-tag span { color: #9ca3af; margin-left: 0.25rem; }
-	.reveal { opacity: 0; transform: translateY(8px); transition: opacity 400ms ease-out, transform 400ms ease-out; }
-	.reveal.visible { opacity: 1; transform: translateY(0); }
-	.reveal-delay-1 { transition-delay: 50ms; }
-	:global(html.dark) .sylee-tags-title { color: #f9fafb; }
-	:global(html.dark) .sylee-tag { background: #1f2937; color: #d1d5db; }
-</style>
 
 <script>
 	function initRevealObserver() {
