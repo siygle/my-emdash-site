@@ -22,25 +22,71 @@ const tags: TagWithCount[] = (terms ?? [])
 	.map((tag: TaxonomyTerm) => ({ ...tag, count: counts.get(tag.slug) ?? 0 }))
 	.filter((tag: TagWithCount) => tag.count > 0)
 	.sort((a: TagWithCount, b: TagWithCount) => b.count - a.count || a.label.localeCompare(b.label));
+
+const featuredTags = tags.slice(0, 9);
+const otherTags = tags.slice(9);
+const totalTaggedPosts = new Set(
+	Array.from(tagsByEntry.entries())
+		.filter(([, entryTags]) => entryTags.length > 0)
+		.map(([entryId]) => entryId),
+).size;
+const maxCount = Math.max(...tags.map((tag) => tag.count), 1);
+
+function tagTone(index: number) {
+	return ["tone-teal", "tone-blue", "tone-violet", "tone-amber", "tone-rose"][index % 5];
+}
 ---
 
 <SyleeLayout title="Tags - Sy Lee" description="Browse posts by tag">
-	<div class="sylee-tags-page">
-		<h1 class="sylee-tags-title reveal">Tags</h1>
-		<div class="sylee-tags-cloud reveal reveal-delay-1">
-			{tags.map((tag) => {
-				const sizeClass = tag.count >= 6 ? "is-large" : tag.count >= 3 ? "is-medium" : "is-small";
-				return (
-					<a href={`/tags/${tag.slug}`} class={`sylee-tag ${sizeClass}`}>
-						{tag.label}
-						<span>({tag.count})</span>
+	<div class="sylee-tags-modern-page">
+		<header class="sylee-modern-hero sylee-tags-hero reveal">
+			<div>
+				<p class="sylee-eyebrow">Explore the archive</p>
+				<h1>Tags</h1>
+				<p class="sylee-modern-subtitle">
+					A map of recurring topics across notes, experiments, and long-form posts.
+				</p>
+			</div>
+			<div class="sylee-tags-stats" aria-label="Tag archive stats">
+				<span><strong>{tags.length}</strong> tags</span>
+				<span><strong>{totalTaggedPosts}</strong> tagged posts</span>
+				<span><strong>{posts.length}</strong> total posts</span>
+			</div>
+		</header>
+
+		{featuredTags.length > 0 && (
+			<section class="sylee-tag-feature-grid reveal reveal-delay-1" aria-label="Popular tags">
+				{featuredTags.map((tag, index) => (
+					<a href={`/tags/${tag.slug}`} class={`sylee-tag-feature ${tagTone(index)}`}>
+						<span class="sylee-tag-feature__name">{tag.label}</span>
+						<span class="sylee-tag-feature__count">{tag.count} {tag.count === 1 ? "post" : "posts"}</span>
+						<span class="sylee-tag-feature__bar" style={`--tag-ratio: ${tag.count / maxCount}`}></span>
 					</a>
-				);
-			})}
-		</div>
+				))}
+			</section>
+		)}
+
+		{otherTags.length > 0 && (
+			<section class="sylee-tags-section reveal reveal-delay-2">
+				<div class="sylee-section-row">
+					<h2>More tags</h2>
+					<p>{otherTags.length} additional topics</p>
+				</div>
+				<div class="sylee-tags-cloud modern">
+					{otherTags.map((tag) => {
+						const sizeClass = tag.count >= 6 ? "is-large" : tag.count >= 3 ? "is-medium" : "is-small";
+						return (
+							<a href={`/tags/${tag.slug}`} class={`sylee-tag ${sizeClass}`}>
+								{tag.label}
+								<span>({tag.count})</span>
+							</a>
+						);
+					})}
+				</div>
+			</section>
+		)}
 	</div>
 </SyleeLayout>
-
 
 <script>
 	function initRevealObserver() {

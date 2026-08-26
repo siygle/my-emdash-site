@@ -19,36 +19,55 @@ function formatDate(date: Date | null | undefined): string {
 	if (!date) return "";
 	return date.toLocaleDateString("en-US", {
 		year: "numeric",
-		month: "long",
+		month: "short",
 		day: "numeric",
 	});
 }
+
+const latestYear = posts[0]?.data.publishedAt?.getFullYear() ?? posts[0]?.data.createdAt.getFullYear() ?? "—";
+const oldestYear = posts.at(-1)?.data.publishedAt?.getFullYear() ?? posts.at(-1)?.data.createdAt.getFullYear() ?? "—";
 ---
 
 <SyleeLayout title={`${term.label} - Tags - Sy Lee`} description={`Posts tagged with ${term.label}`}>
-	<div class="sylee-tag-page">
-		<div class="sylee-tag-header reveal">
-			<a href="/tags" class="sylee-back">← All Tags</a>
-			<h1>
-				<span>{term.label}</span>
-				<span class="sylee-tag-count">({posts.length} {posts.length === 1 ? "post" : "posts"})</span>
-			</h1>
-		</div>
+	<div class="sylee-tag-modern-page">
+		<header class="sylee-modern-hero sylee-tag-detail-hero reveal">
+			<div>
+				<a href="/tags" class="sylee-back modern">← All Tags</a>
+				<p class="sylee-eyebrow">Topic archive</p>
+				<h1>{term.label}</h1>
+				<p class="sylee-modern-subtitle">
+					{posts.length} {posts.length === 1 ? "post" : "posts"} collected under this topic.
+				</p>
+			</div>
+			<div class="sylee-tags-stats compact" aria-label="Tag stats">
+				<span><strong>{posts.length}</strong> posts</span>
+				<span><strong>{latestYear}</strong> latest</span>
+				<span><strong>{oldestYear}</strong> oldest</span>
+			</div>
+		</header>
 
-		<div class="sylee-tag-posts">
-			{posts.map((post, index) => (
-				<article class="sylee-tag-post reveal" style={`transition-delay: ${Math.min(index * 50, 300)}ms`}>
-					<a href={`/blog/${post.id}`}>
-						<time>{formatDate(post.data.publishedAt)}</time>
-						<h2>{post.data.title}</h2>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-					</a>
-				</article>
-			))}
-		</div>
+		{posts.length === 0 ? (
+			<p class="sylee-empty-card">No posts with this tag yet.</p>
+		) : (
+			<div class="sylee-tag-modern-posts">
+				{posts.map((post, index) => (
+					<article class="sylee-tag-modern-post reveal" style={`transition-delay: ${Math.min(index * 45, 300)}ms`}>
+						<a href={`/blog/${post.id}`}>
+							<div class="sylee-tag-modern-post__date">
+								<time>{formatDate(post.data.publishedAt)}</time>
+							</div>
+							<div class="sylee-tag-modern-post__body">
+								<h2>{post.data.title}</h2>
+								{post.data.excerpt && <p>{post.data.excerpt}</p>}
+							</div>
+							<span class="sylee-tag-modern-post__arrow">→</span>
+						</a>
+					</article>
+				))}
+			</div>
+		)}
 	</div>
 </SyleeLayout>
-
 
 <script>
 	function initRevealObserver() {
