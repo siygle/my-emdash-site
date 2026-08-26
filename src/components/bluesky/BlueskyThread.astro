@@ -1,0 +1,94 @@
+---
+import type { BlueskyPost } from "../../lib/bluesky";
+import BlueskyPostComponent from "./BlueskyPost.astro";
+
+interface Props {
+	posts: BlueskyPost[];
+	showDate?: boolean;
+}
+
+const { posts, showDate = false } = Astro.props;
+
+function formatThreadDate(dateString: string): string {
+	const date = new Date(dateString);
+	return date.toLocaleDateString("en-US", {
+		weekday: "short",
+		month: "short",
+		day: "numeric",
+		hour: "numeric",
+		minute: "2-digit",
+	});
+}
+
+const lastPost = posts[posts.length - 1];
+---
+
+<div class="bsky-thread">
+	<div class="bsky-thread__head">
+		{showDate && lastPost && (
+			<span class="bsky-thread__date">{formatThreadDate(lastPost.record.createdAt)}</span>
+		)}
+		<div class="bsky-thread__label">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+			</svg>
+			<span>Thread with {posts.length} posts</span>
+		</div>
+	</div>
+
+	<div class="bsky-thread__line" />
+
+	<div class="bsky-thread__posts">
+		{posts.map((post, index) => (
+			<BlueskyPostComponent post={post} isInThread={true} showConnector={index < posts.length - 1} />
+		))}
+	</div>
+</div>
+
+<style>
+	.bsky-thread {
+		position: relative;
+		background: var(--color-bg);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-4);
+		transition: border-color var(--transition-fast);
+	}
+	.bsky-thread:hover {
+		border-color: var(--color-muted);
+	}
+	.bsky-thread__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-4);
+	}
+	.bsky-thread__date {
+		font-size: var(--font-size-xs);
+		color: var(--color-muted);
+	}
+	.bsky-thread__label {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-2);
+		font-size: var(--font-size-sm);
+		color: var(--color-muted);
+	}
+	.bsky-thread__label svg {
+		width: 16px;
+		height: 16px;
+	}
+	.bsky-thread__line {
+		position: absolute;
+		left: 36px;
+		top: 64px;
+		bottom: 32px;
+		width: 2px;
+		background: var(--color-border);
+	}
+	.bsky-thread__posts {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3);
+	}
+</style>
