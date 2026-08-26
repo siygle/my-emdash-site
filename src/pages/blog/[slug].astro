@@ -2,7 +2,7 @@
 import { decodeSlug, getEmDashEntry, getEntryTerms, getSeoMeta, getSiteSettings } from "emdash";
 import { PortableText } from "emdash/ui";
 import SyleeLayout from "../../layouts/SyleeLayout.astro";
-import { BlueskyComments } from "emdash-plugin-bluesky-comments/astro";
+import { Comments } from "emdash-plugin-bluesky-comments/astro";
 
 const slug = decodeSlug(Astro.params.slug);
 if (!slug) return Astro.redirect("/404");
@@ -62,7 +62,7 @@ function formatDate(date: Date | null | undefined) {
     </div>
   </article>
 
-  <BlueskyComments postUrl={legacyBlogPostUrl} />
+  <Comments postUrl={legacyBlogPostUrl} />
 
   <script>
     function initProgressBar() {
