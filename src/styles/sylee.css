@@ -43,11 +43,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid #14b8a6; outline-offs
 .sylee-post-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
 .sylee-post-tags a, .sylee-pill { font-size: 0.75rem; line-height: 1rem; padding: 0.25rem 0.5rem; background: #f3f4f6; color: #4b5563; border-radius: 0.25rem; text-decoration: none; transition: background 150ms ease, color 150ms ease; }
 .sylee-post-tags a:hover, .sylee-pill:hover { background: #ccfbf1; color: #0f766e; }
-.sylee-pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; }
-.sylee-page-btn { border: none; background: transparent; padding: 0; font: inherit; font-weight: 500; color: #0d9488; cursor: pointer; transition: color 150ms ease; }
-.sylee-page-btn:hover { text-decoration: underline; }
-.sylee-page-btn.is-disabled { color: #9ca3af; cursor: default; text-decoration: none; }
-.sylee-page-indicator { font-size: 0.875rem; line-height: 1.25rem; color: #6b7280; }
 .sylee-view-all { margin-top: 1rem; text-align: center; }
 .sylee-view-all a { font-size: 0.875rem; color: #6b7280; text-decoration: none; transition: color 150ms ease; }
 .sylee-view-all a:hover { color: #374151; text-decoration: underline; }

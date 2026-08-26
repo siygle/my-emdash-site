@@ -3,15 +3,14 @@ import { getEmDashCollection, getTermsForEntries } from "emdash";
 import SyleeLayout from "../layouts/SyleeLayout.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 
-const POSTS_PER_PAGE = 5;
+const LATEST_POSTS = 5;
 
-const { entries: allPosts, cacheHint } = await getEmDashCollection("posts", {
+const { entries: latestPosts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
-	limit: 200,
+	limit: LATEST_POSTS,
 });
 
 Astro.cache.set(cacheHint);
-const latestPosts = allPosts.slice(0, POSTS_PER_PAGE);
 const latestTagIds = latestPosts.map((p) => p.data.id);
 const tagsByEntry = await getTermsForEntries("posts", latestTagIds, "tag");
 
@@ -74,15 +73,6 @@ function formatDate(date: Date | null | undefined): string {
 				})}
 			</div>
 
-			<nav id="posts-pagination" class="sylee-pagination reveal reveal-delay-4">
-				<button id="prev-page-btn" type="button" class="sylee-page-btn is-disabled" disabled>
-					← Previous
-				</button>
-				<span id="page-indicator" class="sylee-page-indicator">Page 1</span>
-				<button id="next-page-btn" type="button" class="sylee-page-btn">
-					Next →
-				</button>
-			</nav>
 			<div class="sylee-view-all reveal reveal-delay-4">
 				<a href="/blog">View all posts →</a>
 			</div>
@@ -90,111 +80,6 @@ function formatDate(date: Date | null | undefined): string {
 	</div>
 
 	<script>
-		function initLandingPagination() {
-			const list = document.getElementById("posts-list");
-			const prevButton = document.getElementById("prev-page-btn") as HTMLButtonElement | null;
-			const nextButton = document.getElementById("next-page-btn") as HTMLButtonElement | null;
-			const pageIndicator = document.getElementById("page-indicator");
-			if (!list || !prevButton || !nextButton || !pageIndicator || list.dataset.ready === "true") return;
-			const postsList: HTMLElement = list;
-			const prevBtn: HTMLButtonElement = prevButton;
-			const nextBtn: HTMLButtonElement = nextButton;
-			const indicator: HTMLElement = pageIndicator;
-			postsList.dataset.ready = "true";
-
-			let currentPage = 1;
-			let totalPages = 1;
-			let loading = false;
-
-			function formatDate(dateString: string): string {
-				const date = new Date(dateString);
-				return date.toLocaleDateString("en-US", {
-					year: "numeric",
-					month: "short",
-					day: "numeric",
-				});
-			}
-
-			function escapeHtml(str: string): string {
-				const div = document.createElement("div");
-				div.textContent = str;
-				return div.innerHTML;
-			}
-
-			function setButtonState(button: HTMLButtonElement, enabled: boolean) {
-				button.disabled = !enabled;
-				button.classList.toggle("is-disabled", !enabled);
-			}
-
-			function updateButtons() {
-				setButtonState(prevBtn, currentPage > 1);
-				setButtonState(nextBtn, currentPage < totalPages);
-				indicator.textContent = `Page ${currentPage} of ${totalPages}`;
-			}
-
-			function renderPosts(posts: Array<{ slug: string; title: string; date: string; tags: Array<{ name: string; slug: string }> }>) {
-				postsList.innerHTML = "";
-				for (const post of posts) {
-					const article = document.createElement("article");
-					article.className = "sylee-post-item";
-					const tagsHtml = post.tags.length > 0
-						? `<div class="sylee-post-tags">${post.tags.map((t) => `<a href="/tags/${escapeHtml(t.slug)}">${escapeHtml(t.name)}</a>`).join("")}</div>`
-						: "";
-					article.innerHTML = `
-						<a href="/blog/${escapeHtml(post.slug)}" class="sylee-post-link">
-							<div class="sylee-post-mainline">
-								<h3>${escapeHtml(post.title)}</h3>
-								<time>${formatDate(post.date)}</time>
-							</div>
-						</a>
-						${tagsHtml}
-					`;
-					postsList.appendChild(article);
-				}
-			}
-
-			async function goToPage(page: number) {
-				if (loading) return;
-				loading = true;
-				postsList.style.transition = "opacity 150ms ease-out, transform 150ms ease-out";
-				postsList.style.opacity = "0";
-				postsList.style.transform = "translateY(8px)";
-				try {
-					const res = await fetch(`/api/posts?page=${page}&limit=5`);
-					const data = await res.json() as { page: number; totalPages: number; posts: Array<{ slug: string; title: string; date: string; tags: Array<{ name: string; slug: string }> }> };
-					currentPage = data.page;
-					totalPages = data.totalPages;
-					await new Promise((r) => setTimeout(r, 150));
-					renderPosts(data.posts);
-					updateButtons();
-					postsList.style.transition = "opacity 300ms ease-out, transform 300ms ease-out";
-					postsList.style.opacity = "1";
-					postsList.style.transform = "translateY(0)";
-					postsList.scrollIntoView({ behavior: "smooth", block: "start" });
-				} catch {
-					postsList.style.opacity = "1";
-					postsList.style.transform = "translateY(0)";
-				} finally {
-					loading = false;
-				}
-			}
-
-			fetch("/api/posts?page=1&limit=5")
-				.then((res) => res.json() as Promise<{ totalPages: number }>)
-				.then((data) => {
-					totalPages = data.totalPages;
-					updateButtons();
-				})
-				.catch(() => {});
-
-			prevBtn.addEventListener("click", () => {
-				if (currentPage > 1) goToPage(currentPage - 1);
-			});
-			nextBtn.addEventListener("click", () => {
-				if (currentPage < totalPages) goToPage(currentPage + 1);
-			});
-		}
-
 		function initRevealObserver() {
 			const observer = new IntersectionObserver(
 				(entries) => {
@@ -207,12 +92,8 @@ function formatDate(date: Date | null | undefined): string {
 			document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 		}
 
-		initLandingPagination();
 		initRevealObserver();
-		document.addEventListener("astro:after-swap", () => {
-			initLandingPagination();
-			initRevealObserver();
-		});
+		document.addEventListener("astro:after-swap", initRevealObserver);
 	</script>
 </SyleeLayout>
 
