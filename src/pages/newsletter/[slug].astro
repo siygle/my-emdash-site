@@ -60,7 +60,7 @@ const topTags = getTopTags(tags || [], 4);
 			{issue.data.excerpt && <p>{issue.data.excerpt}</p>}
 			{topTags.length > 0 && (
 				<div class="newsletter-entry__tags">
-					{topTags.map((tag) => <a href={`/tag/${tag.slug}`}>{tag.label}</a>)}
+					{topTags.map((tag) => <a href={`/tags/${tag.slug}`}>{tag.label}</a>)}
 				</div>
 			)}
 			<div class="newsletter-divider"></div>

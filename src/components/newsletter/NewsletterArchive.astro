@@ -42,7 +42,7 @@ function pageUrl(num: number) {
 		<section class="newsletter-empty">
 			<h1>No issues yet</h1>
 			<p>Create your first post in the EmDash admin.</p>
-			<a href="/_emdash/admin/content/posts/new">Create Issue</a>
+			<a href="/_emdash/admin/content/newsletter/new">Create Issue</a>
 		</section>
 	) : (
 		<>
@@ -65,7 +65,7 @@ function pageUrl(num: number) {
 
 					{featuredTags.length > 0 && (
 						<div class="newsletter-hero__tags">
-							{featuredTags.map((tag) => <a href={`/tag/${tag.slug}`}>{tag.label}</a>)}
+							{featuredTags.map((tag) => <a href={`/tags/${tag.slug}`}>{tag.label}</a>)}
 						</div>
 					)}
 

@@ -1,463 +1,415 @@
 ---
-import {
-	getEmDashCollection,
-	getTermsForEntries,
-	getSiteSettings,
-} from "emdash";
-import { Image } from "emdash/ui";
+import { getEmDashCollection, getTermsForEntries, getSiteSettings } from "emdash";
 import Base from "../layouts/Base.astro";
-import PostCard from "../components/PostCard.astro";
-import { getReadingTime } from "../utils/reading-time";
+import SocialLinks from "../components/SocialLinks.astro";
 import { resolveBlogSiteIdentity } from "../utils/site-identity";
 
-// Limit to what we render (1 featured + 6 grid). The DB does the slicing
-// instead of fetching every post and discarding the tail in JS.
-const POSTS_PER_PAGE = 7;
+const POSTS_PER_PAGE = 5;
 
-const [{ entries: posts, cacheHint }, settings] = await Promise.all([
+const [{ entries: allPosts, cacheHint }, settings] = await Promise.all([
 	getEmDashCollection("posts", {
 		orderBy: { published_at: "desc" },
-		limit: POSTS_PER_PAGE + 1, // +1 to detect "view all" need
+		limit: 200,
 	}),
 	getSiteSettings(),
 ]);
-const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings);
 
 Astro.cache.set(cacheHint);
 
-// Trim the lookahead post used to detect overflow
-const visiblePosts = posts.slice(0, POSTS_PER_PAGE);
-const hasMorePosts = posts.length > POSTS_PER_PAGE;
+resolveBlogSiteIdentity(settings);
+const latestPosts = allPosts.slice(0, POSTS_PER_PAGE);
+const latestTagIds = latestPosts.map((p) => p.data.id);
+const tagsByEntry = await getTermsForEntries("posts", latestTagIds, "tag");
 
-// Find the first post with a featured image for the hero
-const featuredPost = visiblePosts.find((p) => p.data.featured_image);
-const featuredIndex = featuredPost ? visiblePosts.indexOf(featuredPost) : -1;
-
-// Get remaining posts (exclude featured if found, limit to 6 for grid)
-const gridPosts = visiblePosts.filter((_, i) => i !== featuredIndex).slice(0, 6);
-
-// Single batched query for tags across the featured post + grid posts.
-// Avoids the N+1 pattern of calling getEntryTerms() per entry.
-// Bylines are already hydrated on entry.data.bylines by getEmDashCollection.
-const tagEntryIds = [
-	...(featuredPost ? [featuredPost.data.id] : []),
-	...gridPosts.map((p) => p.data.id),
-];
-const tagsByEntry = await getTermsForEntries("posts", tagEntryIds, "tag");
-
-const featuredTags = featuredPost
-	? (tagsByEntry.get(featuredPost.data.id) ?? []).map((t) => ({
-			slug: t.slug,
-			label: t.label,
-		}))
-	: [];
-const featuredBylines = featuredPost?.data.bylines ?? [];
-
-const gridPostsWithTags = gridPosts.map((post) => ({
-	post,
-	tags: (tagsByEntry.get(post.data.id) ?? []).map((t) => ({
-		slug: t.slug,
-		label: t.label,
-	})),
-	bylines: post.data.bylines ?? [],
-}));
-
-// Format date helper
-function formatDate(date: Date | null | undefined) {
-	if (!date) return null;
+function formatDate(date: Date | null | undefined): string {
+	if (!date) return "";
 	return date.toLocaleDateString("en-US", {
 		year: "numeric",
-		month: "long",
+		month: "short",
 		day: "numeric",
 	});
 }
 ---
 
-<Base title={siteTitle} description={siteTagline}>
-	{
-		posts.length === 0 ? (
-			<section class="empty-state">
-				<h2>No posts yet</h2>
-				<p>Create your first post in the admin panel.</p>
-				<a href="/_emdash/admin/content/posts/new" class="btn">
-					Create a post
-				</a>
-			</section>
-		) : (
-			<div class="home-content">
-				{/* Featured Post - Side by side */}
-				{featuredPost && (
-					<section class="featured-section">
-						<div class="featured-grid">
-							<a href={`/blog/${featuredPost.id}`} class="featured-image-link">
-								<div class="featured-image">
-									<Image image={featuredPost.data.featured_image} />
+<Base
+	title="Sy Lee - Software Engineer"
+	description="Personal website of a software engineer from Taiwan who is passionate about web development"
+>
+	<div class="sylee-home-page">
+		<section class="sylee-hero">
+			<div class="sylee-hero-inner">
+				<img
+					src="/avatar.jpg"
+					alt="Avatar"
+					class="sylee-avatar reveal"
+				/>
+				<h1 class="sylee-title reveal reveal-delay-1">
+					My Style, My way, My blog
+				</h1>
+				<p class="sylee-intro reveal reveal-delay-2">
+					I'm <span>SY</span>, a software engineer from Taiwan who is passionate about web development. I love writing code and staying up-to-date with the <a href="https://chat.sylee.dev/">latest web trends</a>.
+				</p>
+				<div class="reveal reveal-delay-3">
+					<SocialLinks />
+				</div>
+			</div>
+		</section>
+
+		<section class="sylee-latest">
+			<h2 class="sylee-section-title reveal">Latest Posts</h2>
+			<div id="posts-list" class="sylee-posts-list">
+				{latestPosts.map((post, index) => {
+					const tags = tagsByEntry.get(post.data.id) ?? [];
+					return (
+						<article class={`sylee-post-item reveal reveal-delay-${Math.min(index + 1, 4)}`}>
+							<a href={`/blog/${post.id}`} class="sylee-post-link">
+								<div class="sylee-post-mainline">
+									<h3>{post.data.title}</h3>
+									<time>{formatDate(post.data.publishedAt)}</time>
 								</div>
 							</a>
-							<div class="featured-content">
-								<div class="featured-meta">
-									{featuredBylines.length > 0 && (
-										<>
-											<div class="featured-bylines">
-												{featuredBylines.slice(0, 2).map((credit, index) => (
-													<>
-														{index > 0 && <span class="byline-sep">,</span>}
-														<span class="featured-byline">
-															{credit.byline.avatarMediaId && (
-																<img
-																	src={`/_emdash/api/media/file/${credit.byline.avatarMediaId}`}
-																	alt={credit.byline.displayName}
-																	class="featured-byline-avatar"
-																/>
-															)}
-															<span class="featured-byline-name">
-																{credit.byline.displayName}
-															</span>
-														</span>
-													</>
-												))}
-												{featuredBylines.length > 2 && (
-													<span class="byline-more">
-														+{featuredBylines.length - 2}
-													</span>
-												)}
-											</div>
-											<span class="meta-dot" />
-										</>
-									)}
-									{formatDate(featuredPost.data.publishedAt) && (
-										<time>{formatDate(featuredPost.data.publishedAt)}</time>
-									)}
-									<span class="meta-dot" />
-									<span>
-										{getReadingTime(featuredPost.data.content)} min read
-									</span>
+							{tags.length > 0 && (
+								<div class="sylee-post-tags">
+									{tags.map((tag) => (
+										<a href={`/tags/${tag.slug}`}>{tag.label}</a>
+									))}
 								</div>
-								<a
-									href={`/blog/${featuredPost.id}`}
-									class="featured-title-link"
-								>
-									<h1 class="featured-title">{featuredPost.data.title}</h1>
-								</a>
-								{featuredPost.data.excerpt && (
-									<p class="featured-excerpt">{featuredPost.data.excerpt}</p>
-								)}
-								{featuredTags.length > 0 && (
-									<div class="featured-tags">
-										{featuredTags.map((tag) => (
-											<a href={`/tag/${tag.slug}`} class="featured-tag">
-												{tag.label}
-											</a>
-										))}
-									</div>
-								)}
-							</div>
-						</div>
-					</section>
-				)}
-
-				{/* Latest Posts */}
-				{gridPostsWithTags.length > 0 && (
-					<section class="posts-section">
-						<header class="section-header">
-							<h2 class="section-title">Latest</h2>
-							{hasMorePosts && (
-								<a href="/blog" class="section-link">
-									View all
-								</a>
 							)}
-						</header>
-						<div class="posts-grid">
-							{gridPostsWithTags.map(({ post, tags, bylines }) => (
-								<PostCard
-									title={post.data.title ?? "Untitled"}
-									excerpt={post.data.excerpt}
-									featuredImage={post.data.featured_image}
-									href={`/blog/${post.id}`}
-									date={post.data.publishedAt ?? undefined}
-									readingTime={getReadingTime(post.data.content)}
-									tags={tags}
-									bylines={bylines}
-								/>
-							))}
-						</div>
-					</section>
-				)}
+						</article>
+					);
+				})}
 			</div>
-		)
-	}
+
+			<nav id="posts-pagination" class="sylee-pagination reveal reveal-delay-4">
+				<button id="prev-page-btn" type="button" class="sylee-page-btn is-disabled" disabled>
+					← Previous
+				</button>
+				<span id="page-indicator" class="sylee-page-indicator">Page 1</span>
+				<button id="next-page-btn" type="button" class="sylee-page-btn">
+					Next →
+				</button>
+			</nav>
+			<div class="sylee-view-all reveal reveal-delay-4">
+				<a href="/blog">View all posts →</a>
+			</div>
+		</section>
+	</div>
+
+	<script>
+		function initLandingPagination() {
+			const list = document.getElementById("posts-list");
+			const prevButton = document.getElementById("prev-page-btn") as HTMLButtonElement | null;
+			const nextButton = document.getElementById("next-page-btn") as HTMLButtonElement | null;
+			const pageIndicator = document.getElementById("page-indicator");
+			if (!list || !prevButton || !nextButton || !pageIndicator || list.dataset.ready === "true") return;
+			const postsList: HTMLElement = list;
+			const prevBtn: HTMLButtonElement = prevButton;
+			const nextBtn: HTMLButtonElement = nextButton;
+			const indicator: HTMLElement = pageIndicator;
+			postsList.dataset.ready = "true";
+
+			let currentPage = 1;
+			let totalPages = 1;
+			let loading = false;
+
+			function formatDate(dateString: string): string {
+				const date = new Date(dateString);
+				return date.toLocaleDateString("en-US", {
+					year: "numeric",
+					month: "short",
+					day: "numeric",
+				});
+			}
+
+			function escapeHtml(str: string): string {
+				const div = document.createElement("div");
+				div.textContent = str;
+				return div.innerHTML;
+			}
+
+			function setButtonState(button: HTMLButtonElement, enabled: boolean) {
+				button.disabled = !enabled;
+				button.classList.toggle("is-disabled", !enabled);
+			}
+
+			function updateButtons() {
+				setButtonState(prevBtn, currentPage > 1);
+				setButtonState(nextBtn, currentPage < totalPages);
+				indicator.textContent = `Page ${currentPage} of ${totalPages}`;
+			}
+
+			function renderPosts(posts: Array<{ slug: string; title: string; date: string; tags: Array<{ name: string; slug: string }> }>) {
+				postsList.innerHTML = "";
+				for (const post of posts) {
+					const article = document.createElement("article");
+					article.className = "sylee-post-item";
+					const tagsHtml = post.tags.length > 0
+						? `<div class="sylee-post-tags">${post.tags.map((t) => `<a href="/tags/${escapeHtml(t.slug)}">${escapeHtml(t.name)}</a>`).join("")}</div>`
+						: "";
+					article.innerHTML = `
+						<a href="/blog/${escapeHtml(post.slug)}" class="sylee-post-link">
+							<div class="sylee-post-mainline">
+								<h3>${escapeHtml(post.title)}</h3>
+								<time>${formatDate(post.date)}</time>
+							</div>
+						</a>
+						${tagsHtml}
+					`;
+					postsList.appendChild(article);
+				}
+			}
+
+			async function goToPage(page: number) {
+				if (loading) return;
+				loading = true;
+				postsList.style.transition = "opacity 150ms ease-out, transform 150ms ease-out";
+				postsList.style.opacity = "0";
+				postsList.style.transform = "translateY(8px)";
+				try {
+					const res = await fetch(`/api/posts?page=${page}&limit=5`);
+					const data = await res.json();
+					currentPage = data.page;
+					totalPages = data.totalPages;
+					await new Promise((r) => setTimeout(r, 150));
+					renderPosts(data.posts);
+					updateButtons();
+					postsList.style.transition = "opacity 300ms ease-out, transform 300ms ease-out";
+					postsList.style.opacity = "1";
+					postsList.style.transform = "translateY(0)";
+					postsList.scrollIntoView({ behavior: "smooth", block: "start" });
+				} catch {
+					postsList.style.opacity = "1";
+					postsList.style.transform = "translateY(0)";
+				} finally {
+					loading = false;
+				}
+			}
+
+			fetch("/api/posts?page=1&limit=5")
+				.then((res) => res.json())
+				.then((data) => {
+					totalPages = data.totalPages;
+					updateButtons();
+				})
+				.catch(() => {});
+
+			prevBtn.addEventListener("click", () => {
+				if (currentPage > 1) goToPage(currentPage - 1);
+			});
+			nextBtn.addEventListener("click", () => {
+				if (currentPage < totalPages) goToPage(currentPage + 1);
+			});
+		}
+
+		function initRevealObserver() {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) entry.target.classList.add("visible");
+					});
+				},
+				{ threshold: 0.1, rootMargin: "-20px" },
+			);
+			document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+		}
+
+		initLandingPagination();
+		initRevealObserver();
+		document.addEventListener("astro:after-swap", () => {
+			initLandingPagination();
+			initRevealObserver();
+		});
+	</script>
 </Base>
 
 <style>
-	.home-content {
-		max-width: var(--wide-width);
+	.sylee-home-page {
+		max-width: 64rem;
 		margin: 0 auto;
-		padding: var(--spacing-16) var(--spacing-6);
+		padding: 0 1.25rem;
 	}
-
-	/* Featured Section - Side by side */
-	.featured-section {
-		margin-bottom: var(--spacing-16);
+	.sylee-hero {
+		margin-top: 8rem;
+		margin-bottom: 4rem;
 	}
-
-	.featured-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: var(--spacing-8);
-		align-items: center;
-	}
-
-	.featured-image-link {
-		grid-column: 1 / 3;
-		display: block;
-		/* Extend to viewport edge, but cap at -6rem minimum extension */
-		margin-left: min(
-			-6rem,
-			calc(-1 * (var(--spacing-6) + (100vw - var(--wide-width)) / 2))
-		);
-	}
-
-	.featured-image {
-		overflow: hidden;
-		border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-		background: var(--color-surface);
-	}
-
-	.featured-image img {
-		width: 100%;
-		height: auto;
-		aspect-ratio: 4 / 3;
-		object-fit: cover;
-		transition: transform 0.4s ease;
-	}
-
-	.featured-image-link:hover .featured-image img,
-	.featured-grid:has(.featured-title-link:hover) .featured-image img {
-		transform: scale(1.02);
-	}
-
-	.featured-content {
+	.sylee-hero-inner {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-4);
+		align-items: flex-start;
 	}
-
-	.featured-meta {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		column-gap: var(--spacing-3);
-		row-gap: var(--spacing-1);
-		font-size: var(--font-size-sm);
-		color: var(--color-muted);
+	.sylee-avatar {
+		width: 5rem;
+		height: 5rem;
+		border-radius: 999px;
+		margin-bottom: 2rem;
 	}
-
-	.meta-dot {
-		width: 3px;
-		height: 3px;
-		border-radius: 50%;
-		background: var(--color-muted);
-	}
-
-	/* Featured bylines */
-	.featured-bylines {
-		display: flex;
-		align-items: center;
-		gap: 2px;
-	}
-
-	.featured-byline {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--spacing-2);
-	}
-
-	.featured-byline-avatar {
-		width: var(--avatar-size-md);
-		height: var(--avatar-size-md);
-		border-radius: 50%;
-		object-fit: cover;
-	}
-
-	.featured-byline-name {
-		font-weight: 500;
-		color: var(--color-text-secondary);
-	}
-
-	.byline-sep {
-		color: var(--color-muted);
-		margin-right: 2px;
-	}
-
-	.byline-more {
-		font-size: var(--font-size-xs);
-		color: var(--color-muted);
-		margin-left: 2px;
-	}
-
-	.featured-title-link {
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.featured-title {
-		font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-4xl));
+	.sylee-title {
+		font-family: var(--font-mono);
+		font-size: clamp(2.25rem, 5vw, 3rem);
+		line-height: 1;
 		font-weight: 700;
-		line-height: var(--leading-tight);
-		letter-spacing: var(--tracking-tight);
-		transition: color var(--transition-fast);
+		color: #111827;
+		margin: 0 0 1.5rem;
 	}
-
-	.featured-title-link:hover .featured-title,
-	.featured-grid:has(.featured-image-link:hover) .featured-title {
-		color: var(--color-accent);
+	.sylee-intro {
+		font-size: 1.125rem;
+		line-height: 1.75rem;
+		color: #4b5563;
+		max-width: 42rem;
+		margin: 0 0 1rem;
 	}
-
-	.featured-excerpt {
-		font-size: var(--font-size-lg);
-		line-height: var(--leading-relaxed);
-		color: var(--color-text-secondary);
+	.sylee-intro span {
+		color: #111827;
+		font-weight: 500;
 	}
-
-	.featured-tags {
+	.sylee-intro a {
+		color: inherit;
+		text-decoration: underline;
+		transition: color 150ms ease;
+	}
+	.sylee-intro a:hover { color: #0d9488; }
+	.sylee-latest { margin-bottom: 4rem; }
+	.sylee-section-title {
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 700;
+		color: #111827;
+		margin: 0 0 2rem;
+	}
+	.sylee-posts-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+	.sylee-post-item {
+		padding: 1rem 0;
+		border-bottom: 1px solid #e5e7eb;
+		transition: border-color 150ms ease;
+	}
+	.sylee-post-item:hover { border-bottom-color: #d1d5db; }
+	.sylee-post-link {
+		display: block;
+		text-decoration: none;
+	}
+	.sylee-post-mainline {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.sylee-post-mainline h3 {
+		font-size: 1.125rem;
+		line-height: 1.75rem;
+		font-weight: 500;
+		color: #111827;
+		margin: 0;
+		transition: color 150ms ease;
+	}
+	.sylee-post-link:hover h3 { color: #0d9488; }
+	.sylee-post-mainline time {
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: #6b7280;
+		flex-shrink: 0;
+	}
+	.sylee-post-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--spacing-2);
-		margin-top: var(--spacing-2);
+		gap: 0.5rem;
+		margin-top: 0.5rem;
 	}
-
-	.featured-tag {
-		display: inline-block;
-		padding: var(--spacing-1) var(--spacing-3);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-secondary);
-		background: var(--color-surface);
-		border-radius: var(--radius);
+	.sylee-post-tags a {
+		font-size: 0.75rem;
+		line-height: 1rem;
+		padding: 0.25rem 0.5rem;
+		background: #f3f4f6;
+		color: #4b5563;
+		border-radius: 0.25rem;
 		text-decoration: none;
 		transition:
-			color var(--transition-fast),
-			background var(--transition-fast);
+			background 150ms ease,
+			color 150ms ease;
 	}
-
-	.featured-tag:hover {
-		color: var(--color-text);
-		background: var(--color-border);
+	.sylee-post-tags a:hover {
+		background: #ccfbf1;
+		color: #0f766e;
 	}
-
-	/* Section header */
-	.section-header {
+	.sylee-pagination {
 		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		margin-bottom: var(--spacing-8);
-		padding-bottom: var(--spacing-4);
-		border-bottom: 1px solid var(--color-border-subtle);
-	}
-
-	.section-title {
-		font-size: var(--font-size-sm);
-		font-weight: 500;
-		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
-		color: var(--color-muted);
-	}
-
-	.section-link {
-		font-size: var(--font-size-sm);
-		color: var(--color-accent);
-		text-decoration: none;
-		transition: color var(--transition-fast);
-	}
-
-	.section-link:hover {
-		color: var(--color-accent-hover);
-	}
-
-	/* Posts Grid */
-	.posts-section {
-	}
-
-	.posts-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: var(--spacing-12) var(--spacing-8);
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-3);
-		text-align: center;
-		padding: var(--spacing-20) var(--spacing-6);
-		max-width: 400px;
-		margin: 0 auto;
+		justify-content: space-between;
+		margin-top: 2rem;
+		padding-top: 1.5rem;
 	}
-
-	.empty-state h2 {
-		font-size: var(--font-size-2xl);
-		font-weight: 600;
-	}
-
-	.empty-state p {
-		color: var(--color-muted);
-	}
-
-	.btn {
-		display: inline-block;
-		margin-top: var(--spacing-4);
-		padding: var(--spacing-3) var(--spacing-6);
-		background: var(--color-accent);
-		color: var(--color-on-accent);
-		text-decoration: none;
-		border-radius: var(--radius);
-		font-size: var(--font-size-sm);
+	.sylee-page-btn {
+		border: none;
+		background: transparent;
+		padding: 0;
+		font: inherit;
 		font-weight: 500;
-		transition: background var(--transition-fast);
+		color: #0d9488;
+		cursor: pointer;
+		transition: color 150ms ease;
 	}
-
-	.btn:hover {
-		background: var(--color-accent-hover);
+	.sylee-page-btn:hover { text-decoration: underline; }
+	.sylee-page-btn.is-disabled {
+		color: #9ca3af;
+		cursor: default;
+		text-decoration: none;
 	}
-
-	/* Responsive */
-	@media (max-width: 900px) {
-		.home-content {
-			padding: var(--spacing-6) var(--spacing-4) var(--spacing-12);
-		}
-
-		.featured-image-link {
-			margin-left: 0;
-		}
-
-		.featured-grid {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-6);
-		}
-
-		.featured-image {
-			border-radius: var(--radius-lg);
-		}
-
-		.featured-image img {
-			aspect-ratio: 16 / 9;
-		}
-
-		.posts-grid {
-			grid-template-columns: repeat(2, 1fr);
-			gap: var(--spacing-8) var(--spacing-6);
-		}
+	.sylee-page-indicator {
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: #6b7280;
 	}
+	.sylee-view-all {
+		margin-top: 1rem;
+		text-align: center;
+	}
+	.sylee-view-all a {
+		font-size: 0.875rem;
+		color: #6b7280;
+		text-decoration: none;
+		transition: color 150ms ease;
+	}
+	.sylee-view-all a:hover {
+		color: #374151;
+		text-decoration: underline;
+	}
+	.reveal {
+		opacity: 0;
+		transform: translateY(8px);
+		transition:
+			opacity 400ms ease-out,
+			transform 400ms ease-out;
+	}
+	.reveal.visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	.reveal-delay-1 { transition-delay: 50ms; }
+	.reveal-delay-2 { transition-delay: 100ms; }
+	.reveal-delay-3 { transition-delay: 150ms; }
+	.reveal-delay-4 { transition-delay: 200ms; }
 
-	@media (max-width: 600px) {
-		.featured-title {
-			font-size: var(--font-size-2xl);
-		}
+	:global(html.dark) .sylee-title,
+	:global(html.dark) .sylee-section-title,
+	:global(html.dark) .sylee-post-mainline h3,
+	:global(html.dark) .sylee-intro span { color: #f9fafb; }
+	:global(html.dark) .sylee-intro,
+	:global(html.dark) .sylee-post-mainline time,
+	:global(html.dark) .sylee-page-indicator,
+	:global(html.dark) .sylee-view-all a { color: #9ca3af; }
+	:global(html.dark) .sylee-post-item { border-bottom-color: #374151; }
+	:global(html.dark) .sylee-post-tags a { background: #1f2937; color: #d1d5db; }
 
-		.posts-grid {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-8);
+	@media (max-width: 640px) {
+		.sylee-home-page { max-width: 42rem; }
+		.sylee-hero { margin-top: 4rem; }
+		.sylee-post-mainline {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
 		}
 	}
 </style>
