@@ -16,7 +16,7 @@ const isFirstPage = pageNumber === 1;
 const settings = await getSiteSettings();
 const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings);
 
-const { entries, hasMore, cacheHint } = await getEmDashCollection("posts", {
+const { entries, hasMore, cacheHint } = await getEmDashCollection("newsletter", {
 	orderBy: { published_at: "desc" },
 	offset: (pageNumber - 1) * PAGE_SIZE,
 	limit: PAGE_SIZE + 1,
@@ -28,7 +28,7 @@ const featured = isFirstPage ? visible[0] : null;
 const listItems = isFirstPage ? visible.slice(1) : visible;
 const tagIds = visible.map((entry) => entry.data.id).filter(Boolean);
 const tagsByEntry = tagIds.length
-	? await getTermsForEntries("posts", tagIds, "tag")
+	? await getTermsForEntries("newsletter", tagIds, "tag")
 	: new Map();
 const featuredTags = featured ? getTopTags(tagsByEntry.get(featured.data.id) || [], 3) : [];
 
