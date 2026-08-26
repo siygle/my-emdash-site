@@ -52,23 +52,37 @@ if (!feedData.error && feedData.items.length > 0) {
 	}
 	if (currentGroup.length > 0) weekGroups.push({ label: currentLabel, items: currentGroup });
 }
+
+const itemCount = feedData.error ? 0 : feedData.items.length;
+const threadCount = feedData.error ? 0 : feedData.items.filter((item) => item.isThread).length;
+const latestDate = !feedData.error && feedData.items[0] ? getItemDate(feedData.items[0]) : null;
+const latestLabel = latestDate
+	? new Date(latestDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+	: "—";
 ---
 
 <SyleeLayout title="Murmur - Sy Lee" description="My thoughts and musings from Bluesky">
-	<div class="sylee-container">
-		<header class="sylee-murmur-header reveal">
-			<h1>Murmur</h1>
-			<p>
-				Thoughts from
-				<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
-					@{BLUESKY_HANDLE}
-				</a>
-				on Bluesky
-			</p>
+	<div class="sylee-murmur-page">
+		<header class="sylee-modern-hero sylee-murmur-hero reveal">
+			<div>
+				<p class="sylee-eyebrow">Bluesky microblog</p>
+				<h1>Murmur</h1>
+				<p class="sylee-modern-subtitle">
+					Short thoughts, links, and work-in-progress notes from
+					<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
+						@{BLUESKY_HANDLE}
+					</a>.
+				</p>
+			</div>
+			<div class="sylee-murmur-hero__meta" aria-label="Murmur stats">
+				<span><strong>{itemCount}</strong> recent items</span>
+				<span><strong>{threadCount}</strong> threads</span>
+				<span><strong>{latestLabel}</strong> latest</span>
+			</div>
 		</header>
 
 		{feedData.error ? (
-			<div class="sylee-error">
+			<div class="sylee-error sylee-modern-card">
 				<p><strong>Unable to load posts</strong></p>
 				<p>{feedData.error}</p>
 				<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
@@ -76,20 +90,25 @@ if (!feedData.error && feedData.items.length > 0) {
 				</a>
 			</div>
 		) : weekGroups.length === 0 ? (
-			<p>No posts yet.</p>
+			<p class="sylee-empty-card">No posts yet.</p>
 		) : (
-			<div class="sylee-murmur-groups">
+			<div class="sylee-murmur-timeline">
 				{weekGroups.map((group, groupIndex) => (
-					<section class="sylee-murmur-group reveal" style={`transition-delay: ${groupIndex * 100}ms`}>
-						<h2>{group.label}</h2>
+					<section class="sylee-murmur-week reveal" style={`transition-delay: ${groupIndex * 80}ms`}>
+						<div class="sylee-murmur-week__label">
+							<span>{group.label}</span>
+							<small>{group.items.length} {group.items.length === 1 ? "item" : "items"}</small>
+						</div>
 						<div class="sylee-murmur-items">
-							{group.items.map((item) =>
-								item.isThread && item.threadPosts ? (
-									<BlueskyThread posts={item.threadPosts} showDate={true} />
-								) : (
-									<BlueskyPost post={item.post} showDate={true} />
-								),
-							)}
+							{group.items.map((item, itemIndex) => (
+								<div class="sylee-murmur-card reveal" style={`transition-delay: ${groupIndex * 80 + itemIndex * 40}ms`}>
+									{item.isThread && item.threadPosts ? (
+										<BlueskyThread posts={item.threadPosts} showDate={true} />
+									) : (
+										<BlueskyPost post={item.post} showDate={true} />
+									)}
+								</div>
+							))}
 						</div>
 					</section>
 				))}
@@ -98,18 +117,19 @@ if (!feedData.error && feedData.items.length > 0) {
 
 		<footer class="sylee-murmur-footer">
 			<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
-				Follow @{BLUESKY_HANDLE} on Bluesky
+				Follow @{BLUESKY_HANDLE} on Bluesky →
 			</a>
 		</footer>
 	</div>
-		<script>
-			function initRevealObserver() {
-				const observer = new IntersectionObserver((entries) => {
-					entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
-				}, { threshold: 0.1, rootMargin: "-20px" });
-				document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-			}
-			initRevealObserver();
-			document.addEventListener("astro:after-swap", initRevealObserver);
-		</script>
+
+	<script>
+		function initRevealObserver() {
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+			}, { threshold: 0.1, rootMargin: "-20px" });
+			document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+		}
+		initRevealObserver();
+		document.addEventListener("astro:after-swap", initRevealObserver);
+	</script>
 </SyleeLayout>
