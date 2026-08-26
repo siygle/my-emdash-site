@@ -1,0 +1,348 @@
+---
+import type { BlueskyPost } from "../../lib/bluesky";
+import { renderRichText, formatRelativeTime, getPostUrl } from "../../lib/bluesky";
+
+interface Props {
+	post: BlueskyPost;
+	isInThread?: boolean;
+	showConnector?: boolean;
+	showDate?: boolean;
+}
+
+const {
+	post,
+	isInThread = false,
+	showConnector = false,
+	showDate = false,
+} = Astro.props;
+const postUrl = getPostUrl(post.uri, post.author.handle);
+const displayName = post.author.displayName || post.author.handle;
+
+function formatPostDate(dateString: string): string {
+	const date = new Date(dateString);
+	return date.toLocaleDateString("en-US", {
+		weekday: "short",
+		month: "short",
+		day: "numeric",
+		hour: "numeric",
+		minute: "2-digit",
+	});
+}
+
+const embed = post.embed;
+const hasImages = embed?.$type === "app.bsky.embed.images#view" && embed.images;
+const hasExternal =
+	embed?.$type === "app.bsky.embed.external#view" && embed.external;
+const hasQuote = embed?.$type === "app.bsky.embed.record#view" && embed.record;
+---
+
+<article class:list={["bsky-post", isInThread ? "bsky-post--thread" : "bsky-post--card"]}>
+	{showConnector && <div class="bsky-post__connector" />}
+	{isInThread && <div class="bsky-post__dot" />}
+
+	<div class={isInThread ? "bsky-post__inner" : ""}>
+		{showDate && !isInThread && (
+			<div class="bsky-post__date">{formatPostDate(post.record.createdAt)}</div>
+		)}
+
+		<div class="bsky-post__header">
+			{post.author.avatar ? (
+				<img
+					src={post.author.avatar}
+					alt={displayName}
+					class="bsky-post__avatar"
+					loading="lazy"
+				/>
+			) : (
+				<div class="bsky-post__avatar bsky-post__avatar--empty" />
+			)}
+			<div class="bsky-post__author">
+				<span class="bsky-post__name">{displayName}</span>
+				<span class="bsky-post__handle">@{post.author.handle}</span>
+			</div>
+			<a
+				href={postUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="bsky-post__time"
+				title="View on Bluesky"
+			>
+				{formatRelativeTime(post.record.createdAt)}
+			</a>
+		</div>
+
+		{post.record.text && (
+			<div class="bsky-post__text" set:html={renderRichText(post.record.text, post.record.facets)} />
+		)}
+
+		{hasImages && embed.images && (
+			<div class:list={["bsky-post__images", embed.images.length > 1 && "bsky-post__images--grid"]}>
+				{embed.images.map((img) => (
+					<a href={img.fullsize} target="_blank" rel="noopener noreferrer" class="bsky-post__image-link">
+						<img
+							src={img.thumb}
+							alt={img.alt || "Image"}
+							class="bsky-post__image"
+							style={img.aspectRatio
+								? `aspect-ratio: ${img.aspectRatio.width}/${img.aspectRatio.height}`
+								: "aspect-ratio: 16/9"}
+							loading="lazy"
+						/>
+					</a>
+				))}
+			</div>
+		)}
+
+		{hasExternal && embed.external && (
+			<a href={embed.external.uri} target="_blank" rel="noopener noreferrer" class="bsky-post__external">
+				{embed.external.thumb && (
+					<img src={embed.external.thumb} alt="" class="bsky-post__external-thumb" loading="lazy" />
+				)}
+				<div class="bsky-post__external-body">
+					<p class="bsky-post__external-title">{embed.external.title}</p>
+					{embed.external.description && (
+						<p class="bsky-post__external-desc">{embed.external.description}</p>
+					)}
+					<p class="bsky-post__external-host">{new URL(embed.external.uri).hostname}</p>
+				</div>
+			</a>
+		)}
+
+		{hasQuote && embed.record && embed.record.value && (
+			<div class="bsky-post__quote">
+				<div class="bsky-post__quote-head">
+					<span class="bsky-post__name">
+						{embed.record.author?.displayName || embed.record.author?.handle}
+					</span>
+					<span class="bsky-post__handle">@{embed.record.author?.handle}</span>
+				</div>
+				<p class="bsky-post__quote-text">{embed.record.value.text}</p>
+			</div>
+		)}
+
+		<a href={postUrl} target="_blank" rel="noopener noreferrer" class="bsky-post__stats" title="View on Bluesky">
+			<span class="bsky-post__stat">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+				</svg>
+				{post.replyCount}
+			</span>
+			<span class="bsky-post__stat">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+				</svg>
+				{post.repostCount}
+			</span>
+			<span class="bsky-post__stat">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+				</svg>
+				{post.likeCount}
+			</span>
+		</a>
+	</div>
+</article>
+
+<style>
+	.bsky-post {
+		position: relative;
+	}
+	.bsky-post--card,
+	.bsky-post__inner {
+		background: var(--color-bg);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-4);
+		transition: border-color var(--transition-fast);
+	}
+	.bsky-post--card:hover,
+	.bsky-post--thread:hover .bsky-post__inner {
+		border-color: var(--color-muted);
+	}
+	.bsky-post--thread {
+		padding-left: var(--spacing-12);
+	}
+	.bsky-post__connector {
+		position: absolute;
+		left: 20px;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: var(--color-border);
+	}
+	.bsky-post__dot {
+		position: absolute;
+		left: 20px;
+		top: 20px;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-muted);
+		transform: translateX(-50%);
+	}
+	.bsky-post__date {
+		font-size: var(--font-size-xs);
+		color: var(--color-muted);
+		margin-bottom: var(--spacing-2);
+	}
+	.bsky-post__header {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--spacing-3);
+		margin-bottom: var(--spacing-3);
+	}
+	.bsky-post__avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		flex-shrink: 0;
+		object-fit: cover;
+	}
+	.bsky-post__avatar--empty {
+		background: var(--color-surface);
+	}
+	.bsky-post__author {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-2);
+		flex-wrap: wrap;
+	}
+	.bsky-post__name {
+		font-weight: 500;
+		color: var(--color-text);
+	}
+	.bsky-post__handle {
+		font-size: var(--font-size-sm);
+		color: var(--color-muted);
+	}
+	.bsky-post__time {
+		font-size: var(--font-size-sm);
+		color: var(--color-muted);
+		flex-shrink: 0;
+		text-decoration: none;
+	}
+	.bsky-post__time:hover {
+		color: var(--color-accent);
+	}
+	.bsky-post__text {
+		font-size: var(--font-size-sm);
+		color: var(--color-text);
+		line-height: var(--leading-relaxed);
+		white-space: pre-wrap;
+		word-break: break-word;
+		margin-bottom: var(--spacing-3);
+	}
+	.bsky-post__text :global(.bsky-link) {
+		color: var(--color-accent);
+		text-decoration: none;
+	}
+	.bsky-post__text :global(.bsky-link:hover) {
+		text-decoration: underline;
+	}
+	.bsky-post__images {
+		margin-top: var(--spacing-3);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+	}
+	.bsky-post__images--grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 4px;
+	}
+	.bsky-post__image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: opacity var(--transition-fast);
+	}
+	.bsky-post__image-link:hover .bsky-post__image {
+		opacity: 0.9;
+	}
+	.bsky-post__external {
+		display: block;
+		margin-top: var(--spacing-3);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		text-decoration: none;
+		transition: border-color var(--transition-fast);
+	}
+	.bsky-post__external:hover {
+		border-color: var(--color-muted);
+	}
+	.bsky-post__external-thumb {
+		width: 100%;
+		height: 128px;
+		object-fit: cover;
+	}
+	.bsky-post__external-body {
+		padding: var(--spacing-3);
+	}
+	.bsky-post__external-title {
+		font-weight: 500;
+		color: var(--color-text);
+		font-size: var(--font-size-sm);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.bsky-post__external-desc {
+		color: var(--color-text-secondary);
+		font-size: var(--font-size-sm);
+		margin-top: var(--spacing-1);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.bsky-post__external-host {
+		color: var(--color-muted);
+		font-size: var(--font-size-xs);
+		margin-top: var(--spacing-1);
+	}
+	.bsky-post__quote {
+		margin-top: var(--spacing-3);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-3);
+		background: var(--color-bg-subtle);
+	}
+	.bsky-post__quote-head {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-2);
+		margin-bottom: var(--spacing-2);
+	}
+	.bsky-post__quote-text {
+		color: var(--color-text-secondary);
+		font-size: var(--font-size-sm);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.bsky-post__stats {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-4);
+		margin-top: var(--spacing-4);
+		font-size: var(--font-size-sm);
+		color: var(--color-muted);
+		text-decoration: none;
+		transition: color var(--transition-fast);
+	}
+	.bsky-post__stats:hover {
+		color: var(--color-text-secondary);
+	}
+	.bsky-post__stat {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-1);
+	}
+	.bsky-post__stat svg {
+		width: 16px;
+		height: 16px;
+	}
+</style>
