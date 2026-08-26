@@ -1,0 +1,109 @@
+---
+import { getEmDashCollection, getSiteSettings, getTermsForEntries } from "emdash";
+import NewsletterLayout from "../../layouts/NewsletterLayout.astro";
+import IssueRow from "./IssueRow.astro";
+import { formatDateFull, getIssueNumber, getTopTags } from "../../utils/newsletter";
+import { resolveBlogSiteIdentity } from "../../utils/site-identity";
+
+interface Props {
+	pageNumber?: number;
+}
+
+const PAGE_SIZE = 7;
+const pageNumber = Math.max(1, Astro.props.pageNumber || 1);
+const isFirstPage = pageNumber === 1;
+
+const settings = await getSiteSettings();
+const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings);
+
+const { entries, hasMore, cacheHint } = await getEmDashCollection("posts", {
+	orderBy: { published_at: "desc" },
+	offset: (pageNumber - 1) * PAGE_SIZE,
+	limit: PAGE_SIZE + 1,
+});
+Astro.cache.set(cacheHint);
+
+const visible = entries.slice(0, PAGE_SIZE);
+const featured = isFirstPage ? visible[0] : null;
+const listItems = isFirstPage ? visible.slice(1) : visible;
+const tagIds = visible.map((entry) => entry.data.id).filter(Boolean);
+const tagsByEntry = tagIds.length
+	? await getTermsForEntries("posts", tagIds, "tag")
+	: new Map();
+const featuredTags = featured ? getTopTags(tagsByEntry.get(featured.data.id) || [], 3) : [];
+
+function pageUrl(num: number) {
+	return num === 1 ? "/newsletter" : `/newsletter/page/${num}`;
+}
+---
+
+<NewsletterLayout title={siteTitle} description={siteTagline}>
+	{visible.length === 0 ? (
+		<section class="newsletter-empty">
+			<h1>No issues yet</h1>
+			<p>Create your first post in the EmDash admin.</p>
+			<a href="/_emdash/admin/content/posts/new">Create Issue</a>
+		</section>
+	) : (
+		<>
+			{featured && (
+				<section class="newsletter-hero">
+					<div class="newsletter-hero__meta">
+						<span>Issue #{getIssueNumber(featured)}</span>
+						<time>{formatDateFull(featured.data.publishedAt || featured.data.createdAt)}</time>
+					</div>
+
+					<div class="newsletter-hero__masthead">
+						<h1>{siteTitle}</h1>
+						<a href="/rss.xml" title="RSS Feed" aria-label="RSS Feed" class="newsletter-rss-icon">
+							<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+								<circle cx="6.18" cy="17.82" r="2.18" />
+								<path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" />
+							</svg>
+						</a>
+					</div>
+
+					{featuredTags.length > 0 && (
+						<div class="newsletter-hero__tags">
+							{featuredTags.map((tag) => <a href={`/tag/${tag.slug}`}>{tag.label}</a>)}
+						</div>
+					)}
+
+					<a href={`/newsletter/${featured.id}`} class="newsletter-featured-link">
+						<h2>{featured.data.title}</h2>
+						{featured.data.excerpt && <p>{featured.data.excerpt}</p>}
+					</a>
+				</section>
+			)}
+
+			<div class="newsletter-divider"></div>
+			<h3 class="newsletter-section-heading">{isFirstPage ? "Latest Issues" : "All Issues"}</h3>
+
+			<section class="newsletter-list" aria-label="Newsletter issues">
+				{listItems.map((issue) => (
+					<IssueRow issue={issue} tags={tagsByEntry.get(issue.data.id) || []} />
+				))}
+			</section>
+
+			{(pageNumber > 1 || hasMore) && (
+				<nav class="newsletter-pagination" aria-label="Pagination">
+					<a
+						href={pageUrl(pageNumber - 1)}
+						class:list={["newsletter-page-arrow", pageNumber === 1 && "newsletter-page-arrow--disabled"]}
+						aria-disabled={pageNumber === 1}
+					>
+						← PREV
+					</a>
+					<div class="newsletter-page-current">{pageNumber}</div>
+					<a
+						href={hasMore ? pageUrl(pageNumber + 1) : "#"}
+						class:list={["newsletter-page-arrow", !hasMore && "newsletter-page-arrow--disabled"]}
+						aria-disabled={!hasMore}
+					>
+						NEXT →
+					</a>
+				</nav>
+			)}
+		</>
+	)}
+</NewsletterLayout>
