@@ -1,0 +1,271 @@
+---
+interface Props {
+	postUrl: string;
+}
+
+const { postUrl } = Astro.props;
+const blueskyHandle = import.meta.env.PUBLIC_BLUESKY_HANDLE || "sylee.dev";
+---
+
+<section class="bsky-comments" id="comments">
+	<h2 class="bsky-comments__heading">Comments</h2>
+	<div id="bluesky-comments-container" data-post-url={postUrl} data-handle={blueskyHandle}>
+		<div id="bluesky-comments-loading" class="bsky-comments__loading">
+			<div class="bsky-comments__spinner"></div>
+			<p>Loading comments...</p>
+		</div>
+		<div id="bluesky-comments-content" class="bsky-comments__content hidden"></div>
+		<div id="bluesky-comments-error" class="hidden"></div>
+	</div>
+</section>
+
+<style>
+	.bsky-comments {
+		max-width: var(--content-width);
+		margin: 0 auto;
+		padding: 0 var(--spacing-6) var(--spacing-16);
+	}
+	.bsky-comments__heading {
+		font-size: var(--font-size-lg);
+		font-weight: 600;
+		margin-bottom: var(--spacing-6);
+		padding-top: var(--spacing-8);
+		border-top: 1px solid var(--color-border);
+	}
+	.bsky-comments__loading {
+		text-align: center;
+		padding: var(--spacing-8) 0;
+		color: var(--color-muted);
+		font-size: var(--font-size-sm);
+	}
+	.bsky-comments__spinner {
+		display: inline-block;
+		width: 20px;
+		height: 20px;
+		border: 2px solid var(--color-border);
+		border-top-color: var(--color-accent);
+		border-radius: 50%;
+		animation: bsky-spin 0.8s linear infinite;
+		margin-bottom: var(--spacing-2);
+	}
+	@keyframes bsky-spin {
+		to { transform: rotate(360deg); }
+	}
+	.hidden { display: none; }
+
+	.bsky-comments :global(.bskyc-engagement) {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-5);
+		padding: var(--spacing-3) var(--spacing-1);
+	}
+	.bsky-comments :global(.bskyc-stat) {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: var(--font-size-sm);
+		color: var(--color-muted);
+		text-decoration: none;
+	}
+	.bsky-comments :global(.bskyc-stat:hover) { color: var(--color-accent); }
+	.bsky-comments :global(.bskyc-stat svg) { width: 16px; height: 16px; }
+	.bsky-comments :global(.bskyc-reply-link) {
+		margin-left: auto;
+		font-size: var(--font-size-sm);
+		color: var(--color-accent);
+		text-decoration: none;
+	}
+	.bsky-comments :global(.bskyc-reply-link:hover) { text-decoration: underline; }
+	.bsky-comments :global(.bskyc-list) {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3);
+		margin-top: var(--spacing-4);
+	}
+	.bsky-comments :global(.bskyc-comment) {
+		display: flex;
+		gap: var(--spacing-3);
+		padding: var(--spacing-3);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border-subtle);
+		transition: border-color var(--transition-fast);
+	}
+	.bsky-comments :global(.bskyc-comment:hover) { border-color: var(--color-border); }
+	.bsky-comments :global(.bskyc-avatar) {
+		width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; object-fit: cover;
+		background: var(--color-surface);
+	}
+	.bsky-comments :global(.bskyc-body) { flex: 1; min-width: 0; }
+	.bsky-comments :global(.bskyc-head) {
+		display: flex; align-items: center; gap: var(--spacing-2); flex-wrap: wrap;
+	}
+	.bsky-comments :global(.bskyc-name) { font-weight: 500; color: var(--color-text); font-size: var(--font-size-sm); }
+	.bsky-comments :global(.bskyc-handle) { font-size: var(--font-size-xs); color: var(--color-muted); }
+	.bsky-comments :global(.bskyc-time) { font-size: var(--font-size-xs); color: var(--color-muted); margin-left: auto; text-decoration: none; }
+	.bsky-comments :global(.bskyc-time:hover) { color: var(--color-accent); }
+	.bsky-comments :global(.bskyc-text) {
+		color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-top: var(--spacing-1);
+		white-space: pre-wrap; word-break: break-word;
+	}
+	.bsky-comments :global(.bskyc-likes) {
+		display: flex; align-items: center; gap: 4px; margin-top: var(--spacing-2);
+		font-size: var(--font-size-xs); color: var(--color-muted);
+	}
+	.bsky-comments :global(.bskyc-likes svg) { width: 14px; height: 14px; }
+	.bsky-comments :global(.bskyc-empty) {
+		color: var(--color-muted); font-size: var(--font-size-sm); text-align: center; padding: var(--spacing-8) 0;
+	}
+</style>
+
+<script>
+	const BLUESKY_API = "https://public.api.bsky.app/xrpc";
+
+	function escapeHtml(str: string): string {
+		return str
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
+
+	function formatRelativeTime(dateString: string): string {
+		const date = new Date(dateString);
+		const diffMs = Date.now() - date.getTime();
+		const diffMin = Math.floor(diffMs / 60000);
+		const diffHour = Math.floor(diffMin / 60);
+		const diffDay = Math.floor(diffHour / 24);
+		if (diffDay > 7) return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+		if (diffDay > 0) return `${diffDay}d`;
+		if (diffHour > 0) return `${diffHour}h`;
+		if (diffMin > 0) return `${diffMin}m`;
+		return "now";
+	}
+
+	function getPostUrl(uri: string, handle: string): string {
+		const rkey = uri.split("/").pop();
+		return `https://bsky.app/profile/${handle}/post/${rkey}`;
+	}
+
+	function renderEngagement(post: any, url: string): string {
+		return `
+			<div class="bskyc-engagement">
+				<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="bskyc-stat">
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+					<span>${post.replyCount || 0}</span>
+				</a>
+				<span class="bskyc-stat">
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+					<span>${post.repostCount || 0}</span>
+				</span>
+				<span class="bskyc-stat">
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+					<span>${post.likeCount || 0}</span>
+				</span>
+				<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="bskyc-reply-link">Reply on Bluesky</a>
+			</div>`;
+	}
+
+	function renderComment(reply: any): string {
+		const post = reply.post;
+		if (!post) return "";
+		const author = post.author;
+		const displayName = escapeHtml(author.displayName || author.handle);
+		const handle = escapeHtml(author.handle);
+		const commentPostUrl = getPostUrl(post.uri, author.handle);
+		const text = escapeHtml(post.record.text);
+		const time = formatRelativeTime(post.record.createdAt);
+		const avatarHtml = author.avatar
+			? `<img src="${escapeHtml(author.avatar)}" alt="${displayName}" class="bskyc-avatar" loading="lazy" />`
+			: `<div class="bskyc-avatar"></div>`;
+		const likeHtml = post.likeCount > 0
+			? `<div class="bskyc-likes"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg><span>${post.likeCount}</span></div>`
+			: "";
+		return `
+			<div class="bskyc-comment">
+				<a href="https://bsky.app/profile/${handle}" target="_blank" rel="noopener noreferrer">${avatarHtml}</a>
+				<div class="bskyc-body">
+					<div class="bskyc-head">
+						<span class="bskyc-name">${displayName}</span>
+						<span class="bskyc-handle">@${handle}</span>
+						<a href="${escapeHtml(commentPostUrl)}" target="_blank" rel="noopener noreferrer" class="bskyc-time">${time}</a>
+					</div>
+					<p class="bskyc-text">${text}</p>
+					${likeHtml}
+				</div>
+			</div>`;
+	}
+
+	async function findBlueskyPost(handle: string, blogUrl: string): Promise<any | null> {
+		const url = new URL(`${BLUESKY_API}/app.bsky.feed.getAuthorFeed`);
+		url.searchParams.set("actor", handle);
+		url.searchParams.set("limit", "30");
+		url.searchParams.set("filter", "posts_no_replies");
+		const response = await fetch(url.toString());
+		if (!response.ok) return null;
+		const data = await response.json();
+		const normalized = blogUrl.replace(/\/$/, "");
+		for (const item of data.feed || []) {
+			const post = item.post;
+			const embedUri = post.embed?.external?.uri || "";
+			if (embedUri.replace(/\/$/, "") === normalized) return post;
+			const text = post.record?.text || "";
+			if (text.includes(normalized) || text.includes(normalized + "/")) return post;
+		}
+		return null;
+	}
+
+	async function loadBlueskyComments() {
+		const container = document.getElementById("bluesky-comments-container");
+		if (!container) return;
+		const blogPostUrl = container.dataset.postUrl;
+		const handle = container.dataset.handle || "sylee.dev";
+		if (!blogPostUrl) return;
+		const loadingEl = document.getElementById("bluesky-comments-loading");
+		const contentEl = document.getElementById("bluesky-comments-content");
+		const errorEl = document.getElementById("bluesky-comments-error");
+		if (!contentEl || !errorEl) return;
+		loadingEl?.classList.remove("hidden");
+		contentEl.classList.add("hidden");
+		contentEl.innerHTML = "";
+		errorEl.classList.add("hidden");
+		try {
+			const post = await findBlueskyPost(handle, blogPostUrl);
+			if (!post) {
+				loadingEl?.classList.add("hidden");
+				contentEl.innerHTML = `<p class="bskyc-empty">No Bluesky post found for this article.</p>`;
+				contentEl.classList.remove("hidden");
+				return;
+			}
+			const bskyPostUrl = getPostUrl(post.uri, post.author.handle);
+			let html = renderEngagement(post, bskyPostUrl);
+			if (post.replyCount > 0) {
+				const threadUrl = new URL(`${BLUESKY_API}/app.bsky.feed.getPostThread`);
+				threadUrl.searchParams.set("uri", post.uri);
+				threadUrl.searchParams.set("depth", "1");
+				threadUrl.searchParams.set("parentHeight", "0");
+				const tr = await fetch(threadUrl.toString());
+				if (tr.ok) {
+					const td = await tr.json();
+					const replies = (td.thread?.replies || [])
+						.filter((r: any) => r.post && !r.blocked && !r.notFound)
+						.sort((a: any, b: any) => (b.post.likeCount || 0) - (a.post.likeCount || 0));
+					if (replies.length > 0) {
+						html += `<div class="bskyc-list">${replies.map((r: any) => renderComment(r)).join("")}</div>`;
+					}
+				}
+			}
+			loadingEl?.classList.add("hidden");
+			contentEl.innerHTML = html;
+			contentEl.classList.remove("hidden");
+		} catch (err) {
+			console.error("Failed to load Bluesky comments:", err);
+			loadingEl?.classList.add("hidden");
+			errorEl.innerHTML = `<p class="bskyc-empty">Unable to load Bluesky comments.</p>`;
+			errorEl.classList.remove("hidden");
+		}
+	}
+
+	loadBlueskyComments();
+	document.addEventListener("astro:after-swap", loadBlueskyComments);
+</script>
