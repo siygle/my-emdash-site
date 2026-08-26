@@ -1,0 +1,84 @@
+---
+import {
+	decodeSlug,
+	getEmDashCollection,
+	getEmDashEntry,
+	getEntryTerms,
+	getSiteSettings,
+} from "emdash";
+import { PortableText } from "emdash/ui";
+import NewsletterLayout from "../../layouts/NewsletterLayout.astro";
+import {
+	formatDateFull,
+	getIssueNumber,
+	getIssueNumberValue,
+	getTopTags,
+} from "../../utils/newsletter";
+import { resolveBlogSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.redirect("/404");
+
+const { entry: issue, cacheHint } = await getEmDashEntry("posts", slug);
+if (!issue) return Astro.redirect("/404");
+Astro.cache.set(cacheHint);
+
+const [{ entries: allIssues }, tags, settings] = await Promise.all([
+	getEmDashCollection("posts", { orderBy: { published_at: "asc" }, limit: 200 }),
+	getEntryTerms("posts", issue.data.id, "tag"),
+	getSiteSettings(),
+]);
+const { siteTagline } = resolveBlogSiteIdentity(settings);
+
+const sorted = [...allIssues].sort(
+	(a, b) => getIssueNumberValue(a) - getIssueNumberValue(b),
+);
+const currentIndex = sorted.findIndex((entry) => entry.id === issue.id);
+const prev = currentIndex > 0 ? sorted[currentIndex - 1] : null;
+const next =
+	currentIndex >= 0 && currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
+const issueNum = getIssueNumber(issue);
+const publishedAt = issue.data.publishedAt || issue.data.createdAt;
+const topTags = getTopTags(tags || [], 4);
+---
+
+<NewsletterLayout
+	title={issue.data.title || (issueNum ? `Issue #${issueNum}` : "Issue")}
+	description={issue.data.excerpt || siteTagline}
+	type="article"
+	publishedTime={issue.data.publishedAt?.toISOString() ?? null}
+	modifiedTime={issue.data.updatedAt?.toISOString() ?? null}
+	content={{ collection: "posts", id: issue.data.id, slug: issue.id }}
+>
+	<article class="newsletter-entry">
+		<header class="newsletter-entry__header">
+			<div class="newsletter-entry__meta">
+				<span>Issue #{issueNum}</span>
+				{publishedAt && <time>{formatDateFull(publishedAt)}</time>}
+			</div>
+			<h1>{issue.data.title}</h1>
+			{issue.data.excerpt && <p>{issue.data.excerpt}</p>}
+			{topTags.length > 0 && (
+				<div class="newsletter-entry__tags">
+					{topTags.map((tag) => <a href={`/tag/${tag.slug}`}>{tag.label}</a>)}
+				</div>
+			)}
+			<div class="newsletter-divider"></div>
+		</header>
+
+		<div class="newsletter-prose">
+			<PortableText value={issue.data.content} />
+		</div>
+	</article>
+
+	<div class="newsletter-divider newsletter-entry-divider"></div>
+	<nav class="newsletter-nav" aria-label="Issue navigation">
+		{prev ? (
+			<a href={`/newsletter/${prev.id}`}>← <span>#{getIssueNumber(prev)}</span></a>
+		) : <span></span>}
+		<a href="/newsletter" class="newsletter-nav__all">All Issues</a>
+		{next ? (
+			<a href={`/newsletter/${next.id}`}><span>#{getIssueNumber(next)}</span> →</a>
+		) : <span></span>}
+	</nav>
+</NewsletterLayout>

@@ -1,0 +1,10 @@
+---
+import NewsletterArchive from "../../../components/newsletter/NewsletterArchive.astro";
+
+const pageNumber = Number(Astro.params.page || 1);
+if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+	return Astro.redirect("/404");
+}
+---
+
+<NewsletterArchive pageNumber={pageNumber} />

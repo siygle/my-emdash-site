@@ -1,0 +1,30 @@
+---
+import { formatDateShort, getIssueNumber, getTopTags } from "../../utils/newsletter";
+
+interface Props {
+	issue: any;
+	tags?: Array<{ label?: string; slug?: string }>;
+}
+
+const { issue, tags = [] } = Astro.props;
+const topTags = getTopTags(tags, 2);
+const date = issue.data.publishedAt || issue.data.createdAt;
+const num = getIssueNumber(issue);
+---
+
+<a href={`/newsletter/${issue.id}`} class="newsletter-article-row">
+	<div class="newsletter-article-row__grid">
+		<div class="newsletter-article-row__meta">
+			{date && <time>{formatDateShort(date)}</time>}
+			{topTags.length > 0 && (
+				<div class="newsletter-article-row__tags">
+					{topTags.map((tag) => <span>{tag.label}</span>)}
+				</div>
+			)}
+		</div>
+		<div class="newsletter-article-row__content">
+			<h4>{issue.data.title || (num ? `Issue #${num}` : "Untitled")}</h4>
+			{issue.data.excerpt && <p>{issue.data.excerpt}</p>}
+		</div>
+	</div>
+</a>
