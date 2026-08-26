@@ -1,91 +1,75 @@
 ---
-import { getMenu, getSiteSettings } from "emdash";
-import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
+import { getSiteSettings } from "emdash";
+import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import { Font } from "astro:assets";
-import { resolveBlogSiteIdentity } from "../utils/site-identity";
+import SyleeHeader from "../components/SyleeHeader.astro";
+import "../styles/sylee.css";
 import "../styles/newsletter.css";
 
 interface Props {
-	title?: string;
-	description?: string | null;
-	type?: "website" | "article";
-	publishedTime?: string | null;
-	modifiedTime?: string | null;
-	content?: { collection: string; id: string; slug?: string | null };
+  title?: string;
+  description?: string;
+  type?: "website" | "article";
+  publishedTime?: string | null;
+  modifiedTime?: string | null;
+  content?: { collection: string; id: string; slug?: string | null };
 }
 
 const {
-	title,
-	description,
-	type = "website",
-	publishedTime = null,
-	modifiedTime = null,
-	content,
+  title,
+  description,
+  type = "website",
+  publishedTime = null,
+  modifiedTime = null,
+  content
 } = Astro.props;
 
 const settings = await getSiteSettings();
-const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings);
-const pageTitle = title || siteTitle;
-const fullTitle = title && title !== siteTitle ? `${title} — ${siteTitle}` : siteTitle;
-const pageDescription = description || siteTagline;
-
-const menu = await getMenu("primary");
-
+const siteTitle = settings.title || "Newsletter Notes";
+const siteTagline = settings.tagline || "An independent newsletter about technology, craft, and the web.";
+const fullTitle = title && title !== siteTitle ? `${title} - ${siteTitle}` : siteTitle;
 const pageCtx = createPublicPageContext({
-	Astro,
-	kind: content ? "content" : "custom",
-	pageType: type,
-	title: fullTitle,
-	pageTitle,
-	description: pageDescription,
-	content,
-	articleMeta: { publishedTime, modifiedTime },
-	siteName: siteTitle,
+  Astro,
+  kind: content ? "content" : "custom",
+  pageType: type,
+  title: fullTitle,
+  pageTitle: title || siteTitle,
+  description: description || siteTagline,
+  content,
+  articleMeta: { publishedTime, modifiedTime },
+  siteName: siteTitle
 });
-
-const isLoggedIn = !!Astro.locals.user;
 ---
 
 <!doctype html>
 <html lang="zh-Hant">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<Font cssVariable="--font-sans" preload />
-		<title>{fullTitle}</title>
-		<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
-		<EmDashHead page={pageCtx} />
-	</head>
-	<body class="newsletter-page">
-		<EmDashBodyStart page={pageCtx} />
-		<nav class="newsletter-header" aria-label="Primary navigation">
-			<div class="newsletter-container newsletter-header__inner">
-				<a href="/newsletter" class="newsletter-header__brand">{siteTitle}</a>
-				<div class="newsletter-header__links">
-					{menu?.items?.map((item) => (
-						<a href={item.url} target={item.target}>{item.label}</a>
-					))}
-					<a href="/">Blog</a>
-					{isLoggedIn && <a href="/_emdash/admin" class="newsletter-header__admin">Admin</a>}
-				</div>
-			</div>
-		</nav>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description || siteTagline} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <EmDashHead page={pageCtx} />
+  </head>
+  <body class="sylee-page newsletter-page">
+    <EmDashBodyStart page={pageCtx} />
+    <SyleeHeader />
 
-		<main class="newsletter-container newsletter-main">
-			<slot />
-		</main>
+    <main class="newsletter-container newsletter-main">
+      <slot />
+    </main>
 
-		<footer class="newsletter-container newsletter-footer">
-			<div>
-				<a href="/newsletter">All Issues</a>
-				<span>·</span>
-				<a href="/rss.xml">RSS</a>
-				<span>·</span>
-				<a href="/">Blog</a>
-			</div>
-			<p class="newsletter-footer__tagline">{siteTagline}</p>
-		</footer>
-		<EmDashBodyEnd page={pageCtx} />
-	</body>
+    <footer class="newsletter-container newsletter-footer">
+      <div>
+        <a href="/newsletter">All Issues</a>
+        <span>·</span>
+        <a href="/rss.xml">RSS</a>
+      </div>
+    </footer>
+    <EmDashBodyEnd page={pageCtx} />
+  </body>
 </html>
