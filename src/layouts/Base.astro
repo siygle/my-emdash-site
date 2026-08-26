@@ -1,11 +1,6 @@
 ---
-import { getMenu, getEmDashCollection, getSiteSettings } from "emdash";
-import {
-	WidgetArea,
-	EmDashHead,
-	EmDashBodyStart,
-	EmDashBodyEnd,
-} from "emdash/ui";
+import { getSiteSettings } from "emdash";
+import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import { Font } from "astro:assets";
 import { resolveBlogSiteIdentity } from "../utils/site-identity";
@@ -40,15 +35,9 @@ const {
 	author,
 	content,
 } = Astro.props;
-const { siteTitle, siteTagline, siteLogo, siteFavicon } = resolveBlogSiteIdentity(await getSiteSettings());
+const { siteTitle, siteFavicon } = resolveBlogSiteIdentity(await getSiteSettings());
 // If title already includes site title (from getSeoMeta), use as-is
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
-
-// Fetch primary menu defined in seed
-const menu = await getMenu("primary");
-
-// Fetch pages for footer
-const { entries: pages } = await getEmDashCollection("pages");
 
 // Build public page context for plugin contributions
 // SEO data is passed here and rendered securely by EmDashHead
