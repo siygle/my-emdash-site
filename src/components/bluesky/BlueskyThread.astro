@@ -25,18 +25,19 @@ const lastPost = posts[posts.length - 1];
 
 <div class="bsky-thread">
 	<div class="bsky-thread__head">
+		<div class="bsky-thread__label">
+			<span class="bsky-thread__icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+				</svg>
+			</span>
+			<span>Thread</span>
+			<strong>{posts.length} posts</strong>
+		</div>
 		{showDate && lastPost && (
 			<span class="bsky-thread__date">{formatThreadDate(lastPost.record.createdAt)}</span>
 		)}
-		<div class="bsky-thread__label">
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-			</svg>
-			<span>Thread with {posts.length} posts</span>
-		</div>
 	</div>
-
-	<div class="bsky-thread__line" />
 
 	<div class="bsky-thread__posts">
 		{posts.map((post, index) => (
@@ -48,47 +49,72 @@ const lastPost = posts[posts.length - 1];
 <style>
 	.bsky-thread {
 		position: relative;
-		background: var(--color-bg);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		padding: var(--spacing-4);
-		transition: border-color var(--transition-fast);
+		padding: 1rem;
+		border: 1px solid rgba(148, 163, 184, 0.26);
+		border-radius: 1.35rem;
+		background:
+			radial-gradient(circle at 0 0, rgba(20, 184, 166, 0.10), transparent 26%),
+			linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.76));
+		box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+		transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 	}
 	.bsky-thread:hover {
-		border-color: var(--color-muted);
+		transform: translateY(-2px);
+		border-color: rgba(20, 184, 166, 0.38);
+		box-shadow: 0 22px 55px rgba(15, 23, 42, 0.09);
 	}
 	.bsky-thread__head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: var(--spacing-4);
+		gap: 1rem;
+		margin-bottom: 0.9rem;
+		padding-bottom: 0.85rem;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.20);
 	}
 	.bsky-thread__date {
-		font-size: var(--font-size-xs);
-		color: var(--color-muted);
+		color: #94a3b8;
+		font-size: 0.74rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		white-space: nowrap;
 	}
 	.bsky-thread__label {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: var(--spacing-2);
-		font-size: var(--font-size-sm);
-		color: var(--color-muted);
+		gap: 0.45rem;
+		min-width: 0;
+		color: #475569;
+		font-size: 0.82rem;
+		font-weight: 700;
 	}
-	.bsky-thread__label svg {
-		width: 16px;
-		height: 16px;
+	.bsky-thread__label strong {
+		padding: 0.2rem 0.45rem;
+		border-radius: 999px;
+		background: rgba(20, 184, 166, 0.12);
+		color: #0f766e;
+		font-size: 0.72rem;
+		white-space: nowrap;
 	}
-	.bsky-thread__line {
-		position: absolute;
-		left: 36px;
-		top: 64px;
-		bottom: 32px;
-		width: 2px;
-		background: var(--color-border);
+	.bsky-thread__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.55rem;
+		height: 1.55rem;
+		border-radius: 999px;
+		background: #0f172a;
+		color: #fff;
 	}
+	.bsky-thread__icon svg { width: 0.92rem; height: 0.92rem; }
 	.bsky-thread__posts {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-3);
+		gap: 0.8rem;
+	}
+	@media (max-width: 640px) {
+		.bsky-thread { padding: 0.8rem; border-radius: 1.1rem; }
+		.bsky-thread__head { align-items: flex-start; flex-direction: column; gap: 0.45rem; }
 	}
 </style>
