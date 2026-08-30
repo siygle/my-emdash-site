@@ -49,7 +49,8 @@ const pageCtx = createPublicPageContext({
     <title>{fullTitle}</title>
     <meta name="description" content={description || siteTagline} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Newsletter RSS" href="/newsletter/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Blog RSS" href="/blog/rss.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -67,7 +68,7 @@ const pageCtx = createPublicPageContext({
       <div>
         <a href="/newsletter">All Issues</a>
         <span>·</span>
-        <a href="/rss.xml">RSS</a>
+        <a href="/newsletter/rss.xml">RSS</a>
       </div>
     </footer>
     <EmDashBodyEnd page={pageCtx} />
