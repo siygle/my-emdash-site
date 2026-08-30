@@ -23,7 +23,7 @@
 		"emdash-plugin-social-embeds": "github:siygle/emdash-plugin-social-embeds#v0.1.1",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
-		"emdash-plugin-bluesky-comments": "github:siygle/emdash-plugin-bluesky-comments#v0.2.0"
+		"emdash-plugin-social-comments": "github:siygle/emdash-plugin-social-comments#v0.3.0"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
