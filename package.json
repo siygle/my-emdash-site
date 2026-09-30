@@ -13,13 +13,13 @@
 		"seed": "emdash seed"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^14.2.4",
+		"@astrojs/cloudflare": "^14.3.3",
 		"@astrojs/react": "^6.0.4",
-		"@emdash-cms/cloudflare": "^0.35.0",
-		"@emdash-cms/plugin-forms": "^0.2.5",
-		"@emdash-cms/plugin-webhook-notifier": "^0.2.0",
-		"astro": "^7.2.6",
-		"emdash": "^0.35.0",
+		"@emdash-cms/cloudflare": "^1.0.1",
+		"@emdash-cms/plugin-forms": "^0.2.9",
+		"@emdash-cms/plugin-webhook-notifier": "^0.2.2",
+		"astro": "^7.3.5",
+		"emdash": "^1.0.1",
 		"emdash-plugin-social-embeds": "github:siygle/emdash-plugin-social-embeds#v0.1.2",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
@@ -27,8 +27,8 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
-		"@cloudflare/workers-types": "^5.20260825.1",
-		"wrangler": "^4.125.0"
+		"@cloudflare/workers-types": "^5.20260930.1",
+		"wrangler": "^4.144.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
