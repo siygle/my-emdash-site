@@ -10,11 +10,7 @@ import { socialCommentsPlugin } from "emdash-plugin-social-comments";
 
 export default defineConfig({
 	output: "server",
-	adapter: cloudflare({
-		// Avoid Cloudflare Images binding; EmDash serves media from R2.
-		imageService: "passthrough",
-		prerenderEnvironment: "node",
-	}),
+	adapter: cloudflare(),
 	image: {
 		layout: "constrained",
 		responsiveStyles: true,

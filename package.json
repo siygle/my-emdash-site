@@ -20,10 +20,10 @@
 		"@emdash-cms/plugin-webhook-notifier": "^0.2.2",
 		"astro": "^7.3.5",
 		"emdash": "^1.0.1",
-		"emdash-plugin-social-embeds": "github:siygle/emdash-plugin-social-embeds#v0.1.2",
+		"emdash-plugin-social-embeds": "github:siygle/emdash-plugin-social-embeds#v0.1.3",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
-		"emdash-plugin-social-comments": "github:siygle/emdash-plugin-social-comments#v0.3.0"
+		"emdash-plugin-social-comments": "github:siygle/emdash-plugin-social-comments#v0.3.1"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
