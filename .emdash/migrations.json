@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"emdashVersion": "1.0.1",
+	"emdashVersion": "1.1.0",
 	"migrationSet": {
 		"names": [
 			"001_initial",
@@ -90,9 +90,11 @@
 			"086_relations_structural",
 			"087_reference_field_relations",
 			"088_cron_oneshot_utc",
-			"089_auto_seed_completion"
+			"089_auto_seed_completion",
+			"090_redirect_enable_loop_guard",
+			"091_redirect_artifacts"
 		],
-		"fingerprint": "d040241afe27f01b0dcb6f360d78056e4ee7d32a29e8b23ae2443c40620f5dc6"
+		"fingerprint": "319ab15f96c2b36351ff1c748631e0c9c586914737650062d7cf69152046b69b"
 	},
 	"i18n": null,
 	"database": {

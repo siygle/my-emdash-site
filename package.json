@@ -15,11 +15,11 @@
 	"dependencies": {
 		"@astrojs/cloudflare": "^14.3.3",
 		"@astrojs/react": "^6.0.4",
-		"@emdash-cms/cloudflare": "^1.0.1",
+		"@emdash-cms/cloudflare": "^1.1.0",
 		"@emdash-cms/plugin-forms": "^0.2.9",
 		"@emdash-cms/plugin-webhook-notifier": "^0.2.2",
 		"astro": "^7.3.5",
-		"emdash": "^1.0.1",
+		"emdash": "^1.1.0",
 		"emdash-plugin-social-embeds": "github:siygle/emdash-plugin-social-embeds#v0.1.3",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
