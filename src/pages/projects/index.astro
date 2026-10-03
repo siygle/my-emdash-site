@@ -1,0 +1,94 @@
+---
+import { getEmDashCollection, getEntryTerms } from "emdash";
+import SyleeLayout from "../../layouts/SyleeLayout.astro";
+
+export const prerender = false;
+
+const kinds = [
+	{ id: "", label: "All" },
+	{ id: "project", label: "Projects" },
+	{ id: "doc", label: "Docs" },
+	{ id: "talk", label: "Talks" },
+] as const;
+
+const selected = kinds.some((kind) => kind.id === Astro.url.searchParams.get("kind"))
+	? Astro.url.searchParams.get("kind") || ""
+	: "";
+
+const { entries, error, cacheHint } = await getEmDashCollection("works", {
+	orderBy: { date: "desc" },
+	limit: 200,
+	...(selected ? { where: { kind: selected } } : {}),
+});
+Astro.cache.set(cacheHint);
+
+function coverSrc(entry: (typeof entries)[number]) {
+	const cover = entry.data.cover as { src?: string } | string | undefined;
+	if (typeof cover === "string") return cover;
+	return cover?.src;
+}
+
+function workDate(entry: (typeof entries)[number]) {
+	const value = entry.data.date as Date | string | undefined;
+	if (!value) return entry.data.publishedAt;
+	return value instanceof Date ? value : new Date(value);
+}
+---
+
+<SyleeLayout title="Projects - Sy Lee" description="Projects, documents, and talks">
+	<div class="sylee-container">
+		<h1 class="sylee-blog-title reveal">Projects</h1>
+		<p class="sylee-page-desc reveal">GitHub projects, documents, and slide decks.</p>
+
+		<nav class="project-filters" aria-label="Filter works">
+			{kinds.map((kind) => (
+				<a href={kind.id ? `/projects?kind=${kind.id}` : "/projects"} aria-current={selected === kind.id ? "page" : undefined}>
+					{kind.label}
+				</a>
+			))}
+		</nav>
+
+		{error && <p>Works collection is not available yet. Create and publish the `works` collection in EmDash admin.</p>}
+		{!error && entries.length === 0 && <p>No published works yet.</p>}
+
+		<ul class="project-list">
+			{entries.map((entry) => (
+				<li>
+					<a href={`/projects/${entry.id}`}>
+						{coverSrc(entry) && <img src={coverSrc(entry)} alt="" loading="lazy" />}
+						<div>
+							<span>{String(entry.data.kind || "work")}</span>
+							<h2>{entry.data.title}</h2>
+							{entry.data.summary && <p>{entry.data.summary}</p>}
+							<time>{workDate(entry)?.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</time>
+						</div>
+					</a>
+				</li>
+			))}
+		</ul>
+	</div>
+</SyleeLayout>
+
+<style>
+	.project-filters { display: flex; gap: 0.75rem; margin: 1.5rem 0 2rem; }
+	.project-filters a { text-decoration: none; color: #4b5563; }
+	.project-filters a[aria-current="page"] { color: #111827; font-weight: 700; }
+	.project-list { list-style: none; padding: 0; display: grid; gap: 1rem; }
+	.project-list a {
+		display: grid;
+		grid-template-columns: 160px 1fr;
+		gap: 1rem;
+		text-decoration: none;
+		color: inherit;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 1rem;
+	}
+	.project-list img { width: 160px; height: 90px; object-fit: cover; border-radius: 8px; background: #f3f4f6; }
+	.project-list span { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; }
+	.project-list h2 { margin: 0.2rem 0; font-size: 1.25rem; color: #111827; }
+	.project-list p, .project-list time { margin: 0; color: #4b5563; }
+	@media (max-width: 640px) {
+		.project-list a { grid-template-columns: 1fr; }
+		.project-list img { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+	}
+</style>

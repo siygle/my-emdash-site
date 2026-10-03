@@ -9,6 +9,11 @@ const { entries: latestPosts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
 	limit: LATEST_POSTS,
 });
+const { entries: featuredWorks } = await getEmDashCollection("works", {
+	where: { featured: true },
+	orderBy: { date: "desc" },
+	limit: 3,
+}).catch(() => ({ entries: [] }));
 
 Astro.cache.set(cacheHint);
 const latestTagIds = latestPosts.map((p) => p.data.id);
@@ -47,6 +52,27 @@ function formatDate(date: Date | null | undefined): string {
 				</div>
 			</div>
 		</section>
+
+		{featuredWorks.length > 0 && (
+			<section class="sylee-latest">
+				<h2 class="sylee-section-title reveal">Featured work</h2>
+				<div class="sylee-posts-list">
+					{featuredWorks.map((work) => (
+						<article class="sylee-post-item">
+							<a href={`/projects/${work.id}`} class="sylee-post-link">
+								<div class="sylee-post-mainline">
+									<h3>{work.data.title}</h3>
+								</div>
+								{work.data.summary && <p>{work.data.summary}</p>}
+							</a>
+						</article>
+					))}
+				</div>
+				<div class="sylee-view-all">
+					<a href="/projects">View all projects →</a>
+				</div>
+			</section>
+		)}
 
 		<section class="sylee-latest">
 			<h2 class="sylee-section-title reveal">Latest Posts</h2>

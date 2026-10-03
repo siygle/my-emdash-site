@@ -1,0 +1,132 @@
+---
+type ResourceType = "github" | "pdf" | "markdown" | "pptx" | "html-slides" | "demo";
+type ImageValue = { src?: string; alt?: string } | string | null | undefined;
+type Resource = {
+	type: ResourceType;
+	label: string;
+	url: string;
+	thumbnail?: ImageValue;
+	visible?: boolean | null;
+};
+
+const { resources = [], fallbackCover } = Astro.props as {
+	resources: Resource[];
+	fallbackCover?: string;
+};
+
+const shown = resources.filter((resource) => resource.visible !== false);
+
+const typeLabel: Record<ResourceType, string> = {
+	github: "GitHub",
+	pdf: "PDF",
+	markdown: "文件",
+	pptx: "PPTX",
+	"html-slides": "簡報",
+	demo: "Demo",
+};
+
+function imageSrc(value: ImageValue): string | undefined {
+	if (typeof value === "string" && value) return value;
+	if (value && typeof value === "object" && value.src) return value.src;
+	return undefined;
+}
+
+function thumbSrc(resource: Resource): string | undefined {
+	const explicit = imageSrc(resource.thumbnail);
+	if (explicit) return explicit;
+	if (resource.type === "github") {
+		const match = resource.url.match(/github\.com\/([^/]+)\/([^/#?]+)/);
+		if (match) return `https://opengraph.githubassets.com/1/${match[1]}/${match[2]}`;
+	}
+	return fallbackCover;
+}
+---
+
+{
+	shown.length > 0 && (
+		<ul class="resource-grid">
+			{shown.map((resource) => {
+				const src = thumbSrc(resource);
+				return (
+					<li>
+						<a
+							class="card"
+							href={resource.url}
+							target="_blank"
+							rel="noopener"
+							download={resource.type === "pptx" ? "" : undefined}
+						>
+							<div class="thumb">
+								{src ? (
+									<img src={src} alt={resource.label} loading="lazy" />
+								) : (
+									<span class="placeholder">{typeLabel[resource.type]}</span>
+								)}
+								<span class="badge">{typeLabel[resource.type]}</span>
+							</div>
+							<span class="label">{resource.label}</span>
+						</a>
+					</li>
+				);
+			})}
+		</ul>
+	)
+}
+
+<style>
+	.resource-grid {
+		display: grid;
+		gap: 1rem;
+		padding: 0;
+		list-style: none;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	}
+	.card {
+		display: block;
+		border-radius: 10px;
+		overflow: hidden;
+		text-decoration: none;
+		color: inherit;
+		border: 1px solid #e5e7eb;
+		transition: transform 0.15s, box-shadow 0.15s;
+	}
+	.card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+	}
+	.thumb {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background: #f3f4f6;
+	}
+	.thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+	.placeholder {
+		display: grid;
+		place-items: center;
+		height: 100%;
+		font-size: 1.5rem;
+		font-weight: 700;
+		opacity: 0.5;
+	}
+	.badge {
+		position: absolute;
+		top: 0.5rem;
+		left: 0.5rem;
+		font-size: 0.75rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		background: rgb(0 0 0 / 0.65);
+		color: #fff;
+	}
+	.label {
+		display: block;
+		padding: 0.6rem 0.8rem;
+		font-weight: 600;
+		color: #111827;
+	}
+</style>

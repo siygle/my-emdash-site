@@ -65,6 +65,49 @@
 					"searchable": true
 				}
 			]
+		},
+		{
+			"slug": "works",
+			"label": "Works",
+			"labelSingular": "Work",
+			"supports": ["drafts", "revisions", "search", "seo"],
+			"fields": [
+				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+				{ "slug": "slug", "label": "Slug", "type": "slug", "required": true },
+				{
+					"slug": "kind",
+					"label": "Kind",
+					"type": "select",
+					"required": true,
+					"indexed": true,
+					"validation": { "options": ["project", "doc", "talk"] }
+				},
+				{ "slug": "summary", "label": "Summary", "type": "text", "required": true, "searchable": true },
+				{ "slug": "cover", "label": "Cover", "type": "image" },
+				{ "slug": "body", "label": "Body", "type": "portableText", "searchable": true },
+				{ "slug": "date", "label": "Date", "type": "datetime", "required": true, "indexed": true },
+				{ "slug": "featured", "label": "Featured", "type": "boolean" },
+				{
+					"slug": "resources",
+					"label": "Resources",
+					"type": "repeater",
+					"validation": {
+						"subFields": [
+							{
+								"slug": "type",
+								"label": "Type",
+								"type": "select",
+								"required": true,
+								"options": ["github", "pdf", "markdown", "pptx", "html-slides", "demo"]
+							},
+							{ "slug": "label", "label": "Label", "type": "string", "required": true },
+							{ "slug": "url", "label": "URL", "type": "string", "required": true },
+							{ "slug": "thumbnail", "label": "Thumbnail", "type": "image" },
+							{ "slug": "visible", "label": "Visible", "type": "boolean" }
+						]
+					}
+				}
+			]
 		}
 	],
 
@@ -86,7 +129,7 @@
 			"label": "Tags",
 			"labelSingular": "Tag",
 			"hierarchical": false,
-			"collections": ["posts"],
+			"collections": ["posts", "works"],
 			"terms": [
 				{ "slug": "webdev", "label": "Web Development" },
 				{ "slug": "opinion", "label": "Opinion" },
