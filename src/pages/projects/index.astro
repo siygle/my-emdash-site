@@ -17,7 +17,7 @@ const { entries, error, cacheHint } = await getEmDashCollection("works", {
 });
 Astro.cache.set(cacheHint);
 
-type ImageValue = { src?: string; alt?: string } | string | null | undefined;
+type ImageValue = { src?: string } | string | null | undefined;
 type Resource = {
 	type?: string;
 	label?: string;
@@ -26,71 +26,23 @@ type Resource = {
 	visible?: boolean | null;
 };
 
-function imageSrc(value: ImageValue): string | undefined {
+function coverSrc(value: unknown): string | undefined {
 	if (typeof value === "string" && value) return value;
-	if (value && typeof value === "object" && value.src) return value.src;
+	if (value && typeof value === "object" && "src" in value && typeof value.src === "string") return value.src;
 	return undefined;
 }
 
-function githubOg(url: string | undefined): string | undefined {
-	if (!url) return undefined;
-	const match = url.match(/github\.com\/([^/]+)\/([^/#?]+)/);
-	if (!match) return undefined;
-	return `https://opengraph.githubassets.com/1/${match[1]}/${match[2]}`;
-}
-
-async function pageOg(url: string | undefined): Promise<string | undefined> {
-	if (!url || !/^https?:\/\//i.test(url)) return undefined;
-	try {
-		const response = await fetch(url, {
-			headers: { "User-Agent": "Mozilla/5.0", Accept: "text/html" },
-			signal: AbortSignal.timeout(2500),
-		});
-		if (!response.ok) return undefined;
-		const html = (await response.text()).slice(0, 80_000);
-		const match =
-			html.match(/<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i) ||
-			html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i);
-		if (!match) return undefined;
-		return new URL(match[1], url).href;
-	} catch {
-		return undefined;
-	}
-}
-
-async function cardImage(entry: (typeof entries)[number], resources: Resource[]) {
-	const cover = imageSrc(entry.data.cover as ImageValue);
-	if (cover) return cover;
-	for (const resource of resources) {
-		const thumb = imageSrc(resource.thumbnail);
-		if (thumb) return thumb;
-	}
-	for (const resource of resources) {
-		const github = githubOg(resource.url);
-		if (github) return github;
-	}
-	for (const resource of resources) {
-		const og = await pageOg(resource.url);
-		if (og) return og;
-	}
-	return undefined;
-}
-
-const cards = await Promise.all(
-	entries.map(async (entry) => {
-		const resources = (Array.isArray(entry.data.resources) ? entry.data.resources : []) as Resource[];
-		const visible = resources.filter((resource) => resource.visible !== false && resource.url);
-		const dateValue = entry.data.date as Date | string | undefined;
-		const date = dateValue ? new Date(dateValue) : entry.data.publishedAt;
-		return {
-			entry,
-			resources: visible,
-			image: await cardImage(entry, visible),
-			date,
-			kind: String(entry.data.kind || "project"),
-		};
-	}),
-);
+const cards = entries.map((entry) => {
+	const resources = (Array.isArray(entry.data.resources) ? entry.data.resources : []) as Resource[];
+	const dateValue = entry.data.date as Date | string | undefined;
+	return {
+		entry,
+		resources: resources.filter((resource) => resource.visible !== false && resource.url),
+		cover: coverSrc(entry.data.cover),
+		date: dateValue ? new Date(dateValue) : entry.data.publishedAt,
+		kind: String(entry.data.kind || "project"),
+	};
+});
 
 const groups = kinds
 	.map((kind) => ({ ...kind, items: cards.filter((card) => card.kind === kind.id) }))
@@ -112,21 +64,12 @@ const groups = kinds
 					{group.items.map((card) => (
 						<li id={card.entry.id}>
 							<article class="work-card">
-								<div class="work-thumb">
-									{card.image ? (
-										<img src={card.image} alt="" loading="lazy" />
-									) : (
-										<span>{group.label}</span>
-									)}
-								</div>
-								<div class="work-body">
-									<h3>{card.entry.data.title}</h3>
-									{card.entry.data.summary && <p>{card.entry.data.summary}</p>}
-									{card.date && (
-										<time>{card.date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</time>
-									)}
-									<ResourceCards resources={card.resources} fallbackCover={card.image} />
-								</div>
+								<h3>{card.entry.data.title}</h3>
+								{card.entry.data.summary && <p>{card.entry.data.summary}</p>}
+								{card.date && (
+									<time>{card.date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</time>
+								)}
+								<ResourceCards resources={card.resources} fallbackCover={card.cover} />
 							</article>
 						</li>
 					))}
@@ -141,12 +84,8 @@ const groups = kinds
 	.project-group { margin-top: 2.5rem; }
 	.project-group h2 { margin: 0 0 1rem; font-size: 1.25rem; color: #111827; }
 	.project-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-	.work-card { height: 100%; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; background: #fff; }
-	.work-thumb { aspect-ratio: 16 / 9; background: #f3f4f6; display: grid; place-items: center; }
-	.work-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-	.work-thumb span { font-weight: 700; color: #9ca3af; }
-	.work-body { padding: 1rem 1rem 1.1rem; }
-	.work-body h3 { margin: 0 0 0.4rem; font-size: 1.15rem; color: #111827; }
-	.work-body p { margin: 0 0 0.6rem; color: #4b5563; line-height: 1.5; }
-	.work-body time { display: block; margin-bottom: 0.8rem; color: #6b7280; font-size: 0.85rem; }
+	.work-card { height: 100%; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; padding: 1rem 1rem 1.1rem; }
+	.work-card h3 { margin: 0 0 0.4rem; font-size: 1.15rem; color: #111827; }
+	.work-card p { margin: 0 0 0.6rem; color: #4b5563; line-height: 1.5; }
+	.work-card time { display: block; margin-bottom: 0.8rem; color: #6b7280; font-size: 0.85rem; }
 </style>
