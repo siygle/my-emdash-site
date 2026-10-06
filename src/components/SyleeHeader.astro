@@ -1,4 +1,7 @@
 ---
+import { palettes } from "../palettes";
+import { PALETTE_COOKIE, themeConfig } from "../theme.config";
+
 const isLoggedIn = !!Astro.locals.user;
 const pathname = Astro.url.pathname;
 
@@ -10,6 +13,9 @@ const workspaces = [
 	{ href: "/projects", label: "projects" },
 	{ href: "/newsletter", label: "newsletter" },
 ];
+
+const defaultPalette =
+	palettes.find((palette) => palette.id === themeConfig.defaultPalette) ?? palettes[0];
 
 function isActive(href: string) {
 	if (href === "/") return pathname === "/";
@@ -45,6 +51,36 @@ const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" st
 		<a href="/search" class="waybar-module" aria-label="Search" aria-current={isActive("/search") ? "page" : undefined}>
 			<Fragment set:html={searchIcon} />
 		</a>
+		{themeConfig.paletteSwitcher && (
+			<>
+				<span class="waybar-sep" aria-hidden="true">│</span>
+				<details class="palette-picker" data-palette-picker>
+					<summary class="waybar-module" aria-label="Choose color palette">
+						<span class="palette-dot" aria-hidden="true" />
+						<span class="palette-current" data-palette-current>{defaultPalette.name}</span>
+					</summary>
+					<div class="palette-menu" role="listbox" aria-label="Color palettes">
+						{palettes.map((palette) => (
+							<button
+								type="button"
+								role="option"
+								class="palette-option"
+								data-palette-option={palette.id}
+								aria-selected={palette.id === defaultPalette.id ? "true" : "false"}
+							>
+								<span
+									class="palette-swatch"
+									style={`--sw-bg: ${palette.swatch[0]}; --sw-fg: ${palette.swatch[1]}; --sw-accent: ${palette.swatch[2]};`}
+									aria-hidden="true"
+								/>
+								<span class="palette-name">{palette.name}</span>
+								<span class="palette-mode">{palette.mode}</span>
+							</button>
+						))}
+					</div>
+				</details>
+			</>
+		)}
 		<span class="waybar-sep" aria-hidden="true">│</span>
 		<a href="/blog/rss.xml" class="waybar-module" aria-label="RSS feed">
 			<Fragment set:html={rssIcon} />
@@ -83,6 +119,51 @@ const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" st
 
 	initWaybarClock();
 	document.addEventListener("astro:after-swap", initWaybarClock);
+
+	// Palette picker: set <html data-palette>, remember it in a cookie, sync labels
+	function syncPaletteUi() {
+		const active = document.documentElement.dataset.palette;
+		document.querySelectorAll<HTMLButtonElement>("[data-palette-option]").forEach((option) => {
+			const selected = option.dataset.paletteOption === active;
+			option.setAttribute("aria-selected", String(selected));
+			if (selected) {
+				const name = option.querySelector(".palette-name")?.textContent ?? "";
+				document.querySelectorAll("[data-palette-current]").forEach((label) => {
+					label.textContent = name;
+				});
+			}
+		});
+	}
+
+	function initPalettePicker() {
+		const picker = document.querySelector<HTMLDetailsElement>("[data-palette-picker]");
+		if (!picker || picker.dataset.ready === "true") return;
+		picker.dataset.ready = "true";
+		picker.querySelectorAll<HTMLButtonElement>("[data-palette-option]").forEach((option) => {
+			option.addEventListener("click", () => {
+				const id = option.dataset.paletteOption;
+				if (!id) return;
+				document.documentElement.dataset.palette = id;
+				const secure = location.protocol === "https:" ? "; Secure" : "";
+				document.cookie = `${PALETTE_COOKIE}=${id}; path=/; max-age=31536000; SameSite=Lax${secure}`;
+				syncPaletteUi();
+				picker.open = false;
+			});
+		});
+		document.addEventListener("click", (event) => {
+			if (picker.open && !picker.contains(event.target as Node)) picker.open = false;
+		});
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "Escape" && picker.open) {
+				picker.open = false;
+				picker.querySelector("summary")?.focus();
+			}
+		});
+		syncPaletteUi();
+	}
+
+	initPalettePicker();
+	document.addEventListener("astro:after-swap", initPalettePicker);
 </script>
 
 <style>
@@ -168,6 +249,88 @@ const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" st
 		width: 1rem;
 		height: 1rem;
 	}
+	/* Palette picker */
+	.palette-picker {
+		position: relative;
+	}
+	.palette-picker summary {
+		list-style: none;
+		cursor: pointer;
+		gap: 0.4rem;
+	}
+	.palette-picker summary::-webkit-details-marker {
+		display: none;
+	}
+	.palette-picker[open] summary {
+		color: var(--ctp-text);
+		background: var(--ctp-surface0);
+	}
+	.palette-dot {
+		width: 0.7rem;
+		height: 0.7rem;
+		background: var(--ctp-blue);
+		box-shadow: inset -0.35rem 0 0 var(--ctp-text);
+	}
+	.palette-menu {
+		position: absolute;
+		top: calc(100% + var(--wm-gap-out));
+		right: 0;
+		width: 16rem;
+		max-height: min(28rem, 70vh);
+		overflow-y: auto;
+		padding: calc(var(--wm-title-height) + 0.25rem) 0.25rem 0.25rem;
+		background: var(--ctp-base);
+		border: var(--wm-border-width) solid transparent;
+		border-image: var(--wm-active-border) 1;
+		z-index: 1000;
+	}
+	.palette-menu::before {
+		content: "omarchy-theme-set";
+		position: absolute;
+		top: 0;
+		inset-inline: 0;
+		height: var(--wm-title-height);
+		display: flex;
+		align-items: center;
+		padding-inline: 0.75rem;
+		font-size: 0.75rem;
+		color: var(--ctp-blue);
+		background: var(--ctp-mantle);
+		border-bottom: 1px solid var(--ctp-surface0);
+	}
+	.palette-option {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.25rem 0.5rem;
+		font: inherit;
+		text-align: left;
+		color: var(--ctp-subtext1);
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+	}
+	.palette-option:hover,
+	.palette-option:focus-visible {
+		color: var(--ctp-text);
+		background: var(--ctp-mantle);
+	}
+	.palette-option[aria-selected="true"] {
+		color: var(--ctp-base);
+		background: var(--ctp-blue);
+	}
+	.palette-swatch {
+		width: 1.6rem;
+		height: 0.9rem;
+		background: linear-gradient(90deg, var(--sw-bg) 0 40%, var(--sw-fg) 40% 70%, var(--sw-accent) 70%);
+		outline: 1px solid var(--ctp-surface0);
+	}
+	.palette-mode {
+		font-size: 0.7rem;
+		opacity: 0.7;
+	}
 	.waybar-sep {
 		color: var(--ctp-surface2);
 		user-select: none;
@@ -180,7 +343,8 @@ const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" st
 		}
 	}
 	@media (max-width: 760px) {
-		.ws-label {
+		.ws-label,
+		.palette-current {
 			display: none;
 		}
 	}

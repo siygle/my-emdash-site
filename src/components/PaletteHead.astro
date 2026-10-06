@@ -1,0 +1,17 @@
+---
+import { palettes } from "../palettes";
+import { PALETTE_COOKIE } from "../theme.config";
+
+const paletteIds = palettes.map((palette) => palette.id);
+---
+
+<script is:inline define:vars={{ paletteIds, cookieName: PALETTE_COOKIE }}>
+	// Apply a saved palette before first paint to prevent a flash.
+	var row = document.cookie.split("; ").find(function (item) {
+		return item.startsWith(cookieName + "=");
+	});
+	var saved = row ? row.slice(cookieName.length + 1) : null;
+	if (saved && paletteIds.indexOf(saved) !== -1) {
+		document.documentElement.dataset.palette = saved;
+	}
+</script>

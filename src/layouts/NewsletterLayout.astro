@@ -7,6 +7,8 @@ import SyleeHeader from "../components/SyleeHeader.astro";
 import StatusLine from "../components/StatusLine.astro";
 import "../styles/sylee.css";
 import "../styles/newsletter.css";
+import PaletteHead from "../components/PaletteHead.astro";
+import { themeConfig } from "../theme.config";
 
 interface Props {
   title?: string;
@@ -44,7 +46,7 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-palette={themeConfig.defaultPalette}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -55,6 +57,7 @@ const pageCtx = createPublicPageContext({
     <link rel="alternate" type="application/rss+xml" title="Blog RSS" href="/blog/rss.xml" />
     <meta name="theme-color" content="#e6e9ef" />
     <Font cssVariable="--font-mono" preload />
+    <PaletteHead />
     <EmDashHead page={pageCtx} />
   </head>
   <body class="sylee-page newsletter-page">

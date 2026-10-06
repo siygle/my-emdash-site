@@ -7,6 +7,8 @@ import { resolveBlogSiteIdentity } from "../utils/site-identity";
 import SyleeHeader from "../components/SyleeHeader.astro";
 import StatusLine from "../components/StatusLine.astro";
 import "../styles/sylee.css";
+import PaletteHead from "../components/PaletteHead.astro";
+import { themeConfig } from "../theme.config";
 
 interface Props {
 	title: string;
@@ -60,11 +62,12 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette={themeConfig.defaultPalette}>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<Font cssVariable="--font-mono" preload />
+		<PaletteHead />
 		<title>{fullTitle}</title>
 		{siteFavicon && <link rel="icon" href={siteFavicon} />}
 		<EmDashHead page={pageCtx} />
