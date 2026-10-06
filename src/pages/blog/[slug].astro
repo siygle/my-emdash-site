@@ -42,7 +42,7 @@ function formatDate(date: Date | null | undefined) {
   modifiedTime={post.data.updatedAt.toISOString()}
   content={{ collection: "posts", id: post.data.id, slug }}
 >
-  <article class="sylee-article" data-pagefind-body>
+  <article class="sylee-article is-active" data-window={`~/blog/${slug}.md`} data-window-meta="markdown" data-pagefind-body>
     <header>
       <h1 data-pagefind-meta="title">{post.data.title}</h1>
       <div class="sylee-article-meta">
@@ -62,7 +62,9 @@ function formatDate(date: Date | null | undefined) {
     </div>
   </article>
 
-  <Comments postUrl={legacyBlogPostUrl} />
+  <section class="sylee-comments" data-window="~/comments" data-window-meta="github · bluesky">
+    <Comments postUrl={legacyBlogPostUrl} />
+  </section>
 
   <script>
     function initProgressBar() {
@@ -79,7 +81,6 @@ function formatDate(date: Date | null | undefined) {
         left: "0",
         height: "2px",
         width: "0%",
-        backgroundColor: "#14b8a6",
         zIndex: "60",
         transition: "width 100ms ease-out",
         pointerEvents: "none",

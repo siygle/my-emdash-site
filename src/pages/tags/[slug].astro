@@ -30,10 +30,10 @@ const oldestYear = posts.at(-1)?.data.publishedAt?.getFullYear() ?? posts.at(-1)
 
 <SyleeLayout title={`${term.label} - Tags - Sy Lee`} description={`Posts tagged with ${term.label}`}>
 	<div class="sylee-tag-modern-page">
-		<header class="sylee-modern-hero sylee-tag-detail-hero reveal">
+		<header class="sylee-modern-hero sylee-tag-detail-hero reveal" data-window={`~/tags/${term.slug}`} data-window-meta="topic">
 			<div>
-				<a href="/tags" class="sylee-back modern">← All Tags</a>
-				<p class="sylee-eyebrow">Topic archive</p>
+				<a href="/tags" class="sylee-back modern">..</a>
+				<p class="sylee-eyebrow">topic archive</p>
 				<h1>{term.label}</h1>
 				<p class="sylee-modern-subtitle">
 					{posts.length} {posts.length === 1 ? "post" : "posts"} collected under this topic.
@@ -49,7 +49,7 @@ const oldestYear = posts.at(-1)?.data.publishedAt?.getFullYear() ?? posts.at(-1)
 		{posts.length === 0 ? (
 			<p class="sylee-empty-card">No posts with this tag yet.</p>
 		) : (
-			<div class="sylee-tag-modern-posts">
+			<div class="sylee-tag-modern-posts is-active" data-window={`~/tags/${term.slug} — posts`} data-window-meta={`${posts.length} files`}>
 				{posts.map((post, index) => (
 					<article class="sylee-tag-modern-post reveal" style={`transition-delay: ${Math.min(index * 45, 300)}ms`}>
 						<a href={`/blog/${post.id}`}>

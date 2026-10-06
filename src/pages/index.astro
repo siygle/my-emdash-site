@@ -34,13 +34,16 @@ function formatDate(date: Date | null | undefined): string {
 	description="Personal website of a software engineer from Taiwan who is passionate about web development"
 >
 	<div class="sylee-home-page">
-		<section class="sylee-hero">
+		<section class="sylee-hero" data-window="~/about.md" data-window-meta="zsh">
 			<div class="sylee-hero-inner">
 				<img
 					src="/avatar.jpg"
 					alt="Avatar"
 					class="sylee-avatar reveal"
 				/>
+				<p class="sylee-whoami reveal reveal-delay-1">
+					<span class="user">sy@sylee.dev</span>:<span class="path">~</span>$ whoami
+				</p>
 				<h1 class="sylee-title reveal reveal-delay-1">
 					My Style, My way, My blog
 				</h1>
@@ -53,29 +56,8 @@ function formatDate(date: Date | null | undefined): string {
 			</div>
 		</section>
 
-		{featuredWorks.length > 0 && (
-			<section class="sylee-latest">
-				<h2 class="sylee-section-title reveal">Featured work</h2>
-				<div class="sylee-posts-list">
-					{featuredWorks.map((work) => (
-						<article class="sylee-post-item">
-							<a href={`/projects#${work.id}`} class="sylee-post-link">
-								<div class="sylee-post-mainline">
-									<h3>{work.data.title}</h3>
-								</div>
-								{work.data.summary && <p>{work.data.summary}</p>}
-							</a>
-						</article>
-					))}
-				</div>
-				<div class="sylee-view-all">
-					<a href="/projects">View all projects →</a>
-				</div>
-			</section>
-		)}
-
-		<section class="sylee-latest">
-			<h2 class="sylee-section-title reveal">Latest Posts</h2>
+		<section class="sylee-latest is-active" data-window="~/blog — latest">
+			<h2 class="sylee-section-title reveal">latest posts</h2>
 			<div id="posts-list" class="sylee-posts-list">
 				{latestPosts.map((post, index) => {
 					const tags = tagsByEntry.get(post.data.id) ?? [];
@@ -100,9 +82,30 @@ function formatDate(date: Date | null | undefined): string {
 			</div>
 
 			<div class="sylee-view-all reveal reveal-delay-4">
-				<a href="/blog">View all posts →</a>
+				<a href="/blog">ls ~/blog →</a>
 			</div>
 		</section>
+
+		{featuredWorks.length > 0 && (
+			<section class="sylee-latest" data-window="~/projects — featured">
+				<h2 class="sylee-section-title reveal">featured work</h2>
+				<div class="sylee-posts-list">
+					{featuredWorks.map((work) => (
+						<article class="sylee-post-item">
+							<a href={`/projects#${work.id}`} class="sylee-post-link">
+								<div class="sylee-post-mainline">
+									<h3>{work.data.title}</h3>
+								</div>
+								{work.data.summary && <p>{work.data.summary}</p>}
+							</a>
+						</article>
+					))}
+				</div>
+				<div class="sylee-view-all">
+					<a href="/projects">ls ~/projects →</a>
+				</div>
+			</section>
+		)}
 	</div>
 
 	<script>

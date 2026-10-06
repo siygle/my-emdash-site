@@ -1,36 +1,21 @@
 /*
- * Newsletter theme — monochrome, issue-driven layout inspired by
- * sylee.dev/newsletter. Scoped to .newsletter-page so it never leaks into
- * the main blog theme (theme.css).
+ * Newsletter theme — issue-driven layout on the Omarchy Catppuccin Latte
+ * palette from theme.css. Scoped to .newsletter-page so it never leaks into
+ * the main blog styles.
  */
 .newsletter-page {
 	--newsletter-width: 960px;
-	--newsletter-ink: #000;
-	--newsletter-bg: #fdfdfd;
-	--newsletter-text: #333;
-	--newsletter-muted: #525252;
-	--newsletter-soft: #71717a;
-	--newsletter-border: #e5e5e5;
-	--newsletter-panel: #f5f5f5;
-	margin: 0;
-	min-height: 100vh;
-	background: var(--newsletter-bg);
+	--newsletter-ink: var(--ctp-text);
+	--newsletter-bg: var(--ctp-base);
+	--newsletter-text: var(--ctp-text);
+	--newsletter-muted: var(--ctp-subtext1);
+	--newsletter-soft: var(--ctp-subtext0);
+	--newsletter-border: var(--ctp-surface0);
+	--newsletter-panel: var(--ctp-mantle);
+	--newsletter-accent: var(--ctp-blue);
 	color: var(--newsletter-text);
-	font-family:
-		Inter, var(--font-sans), ui-sans-serif, system-ui, -apple-system,
-		BlinkMacSystemFont, "Segoe UI", sans-serif;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
-}
-
-:root.dark .newsletter-page {
-	--newsletter-ink: #f5f5f5;
-	--newsletter-bg: #0d0d0d;
-	--newsletter-text: #d4d4d4;
-	--newsletter-muted: #a0a0a0;
-	--newsletter-soft: #8b8b8b;
-	--newsletter-border: #2a2a2a;
-	--newsletter-panel: #181818;
 }
 
 .newsletter-page * {
@@ -48,7 +33,9 @@
 }
 
 .newsletter-main {
-	padding-block: 2.5rem;
+	max-width: var(--newsletter-width);
+	width: 100%;
+	margin-inline: auto;
 }
 
 .newsletter-header {
@@ -129,10 +116,10 @@
 	justify-content: space-between;
 	gap: 1rem;
 	margin-bottom: 1.25rem;
-	color: var(--newsletter-muted);
-	font-size: 1.125rem;
+	color: var(--newsletter-soft);
+	font-family: var(--font-ui);
+	font-size: 0.875rem;
 	font-weight: 700;
-	letter-spacing: 0.1em;
 	text-transform: uppercase;
 }
 
@@ -147,6 +134,7 @@
 	margin: 0;
 	color: var(--newsletter-ink);
 	font-size: clamp(3.75rem, 11vw, 6rem);
+	font-family: var(--font-ui);
 	font-weight: 900;
 	letter-spacing: -0.055em;
 	line-height: 0.95;
@@ -180,9 +168,10 @@
 .newsletter-entry__tags a {
 	display: inline-flex;
 	align-items: center;
-	background: var(--newsletter-ink);
+	background: var(--newsletter-accent);
 	color: var(--newsletter-bg);
-	padding: 0.3rem 0.75rem;
+	font-family: var(--font-ui);
+	padding: 0.15rem 0.5rem;
 	font-size: 0.875rem;
 	font-weight: 700;
 	letter-spacing: 0.05em;
@@ -200,6 +189,7 @@
 	margin: 0 0 1.25rem;
 	color: var(--newsletter-ink);
 	font-size: clamp(2.4rem, 6vw, 3.4rem);
+	font-family: var(--font-ui);
 	font-weight: 800;
 	letter-spacing: -0.035em;
 	line-height: 1.08;
@@ -207,7 +197,7 @@
 }
 
 .newsletter-featured-link:hover h2 {
-	color: var(--newsletter-muted);
+	color: var(--newsletter-accent);
 }
 
 .newsletter-featured-link p,
@@ -230,7 +220,7 @@
 .newsletter-divider::after {
 	content: "";
 	display: block;
-	background: var(--newsletter-ink);
+	background: var(--ctp-surface1);
 }
 
 .newsletter-divider::before {
@@ -238,16 +228,21 @@
 }
 
 .newsletter-divider::after {
-	height: 5px;
+	height: 3px;
+	background: var(--wm-active-border);
 }
 
 .newsletter-section-heading {
 	margin: 0 0 2rem;
-	color: var(--newsletter-soft);
-	font-size: 1.1rem;
+	color: var(--newsletter-ink);
+	font-family: var(--font-ui);
+	font-size: 1rem;
 	font-weight: 700;
-	letter-spacing: 0.2em;
-	text-transform: uppercase;
+}
+
+.newsletter-section-heading::before {
+	content: "❯ ";
+	color: var(--ctp-green);
 }
 
 .newsletter-list {
@@ -265,7 +260,7 @@
 }
 
 .newsletter-article-row:hover {
-	background: color-mix(in srgb, var(--newsletter-ink) 3%, transparent);
+	background: var(--newsletter-panel);
 }
 
 .newsletter-article-row__grid {
@@ -281,6 +276,7 @@
 	display: block;
 	color: var(--newsletter-ink);
 	font-size: clamp(1rem, 2.5vw, 1.25rem);
+	font-family: var(--font-ui);
 	font-weight: 900;
 	letter-spacing: 0.02em;
 }
@@ -293,11 +289,14 @@
 }
 
 .newsletter-article-row__tags span {
-	color: var(--newsletter-muted);
+	color: var(--newsletter-soft);
+	font-family: var(--font-ui);
 	font-size: 0.75rem;
-	font-weight: 700;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
+}
+
+.newsletter-article-row__tags span::before {
+	content: "#";
+	color: var(--ctp-overlay1);
 }
 
 .newsletter-article-row__content {
@@ -316,7 +315,7 @@
 }
 
 .newsletter-article-row:hover h4 {
-	color: var(--newsletter-muted);
+	color: var(--newsletter-accent);
 }
 
 .newsletter-article-row__content p {
@@ -328,8 +327,10 @@
 
 .newsletter-pagination {
 	margin-top: 3rem;
-	border: 4px solid var(--newsletter-ink);
-	padding: 1rem 1.5rem;
+	border: var(--wm-border-width) solid var(--ctp-surface1);
+	background: var(--newsletter-panel);
+	padding: 0.75rem 1.25rem;
+	font-family: var(--font-ui);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -337,7 +338,7 @@
 }
 
 .newsletter-page-arrow {
-	color: var(--newsletter-ink);
+	color: var(--newsletter-accent);
 	font-size: 0.8rem;
 	font-weight: 700;
 	letter-spacing: 0.15em;
@@ -346,7 +347,7 @@
 }
 
 .newsletter-page-arrow:hover {
-	color: var(--newsletter-muted);
+	color: var(--ctp-lavender);
 }
 
 .newsletter-page-arrow--disabled {
@@ -358,8 +359,7 @@
 .newsletter-page-current {
 	width: 2.5rem;
 	height: 2.5rem;
-	border-radius: 999px;
-	background: var(--newsletter-ink);
+	background: var(--newsletter-accent);
 	color: var(--newsletter-bg);
 	display: grid;
 	place-items: center;
@@ -403,35 +403,34 @@
 
 .newsletter-prose h3 {
 	margin-top: 2rem;
+	font-family: var(--font-ui);
 	color: var(--newsletter-ink);
 	font-weight: 600;
 }
 
 .newsletter-prose a {
-	color: var(--newsletter-ink);
+	color: var(--newsletter-accent);
 	text-decoration: underline;
-	text-decoration-color: color-mix(in srgb, var(--newsletter-ink) 30%, transparent);
-	text-underline-offset: 2px;
+	text-decoration-color: color-mix(in srgb, var(--newsletter-accent) 40%, transparent);
+	text-underline-offset: 3px;
 }
 
 .newsletter-prose a:hover {
-	text-decoration-color: var(--newsletter-ink);
+	text-decoration-color: currentColor;
 }
 
 .newsletter-prose blockquote {
 	margin: 1.5rem 0;
-	border-left: 3px solid var(--newsletter-ink);
+	border-left: 3px solid var(--ctp-lavender);
 	background: var(--newsletter-panel);
 	padding: 1rem 1.25rem;
 	color: var(--newsletter-muted);
-	font-style: italic;
 }
 
 .newsletter-prose pre {
 	overflow-x: auto;
 	background: var(--newsletter-panel);
 	border: 1px solid var(--newsletter-border);
-	border-radius: 0.5rem;
 	padding: 1.25rem;
 	font-size: 0.875rem;
 	line-height: 1.7;
@@ -440,8 +439,9 @@
 .newsletter-prose :not(pre) > code {
 	background: var(--newsletter-panel);
 	border: 1px solid var(--newsletter-border);
-	border-radius: 3px;
 	padding: 0.15em 0.35em;
+	color: var(--ctp-maroon);
+	font-family: var(--font-ui);
 	font-size: 0.85em;
 }
 
@@ -467,7 +467,6 @@
 
 .newsletter-prose .emdash-embed-video,
 .newsletter-prose .social-embed__video {
-	border-radius: 0.5rem;
 	overflow: hidden;
 }
 
@@ -479,7 +478,8 @@
 }
 
 .newsletter-nav a {
-	color: var(--newsletter-muted);
+	color: var(--newsletter-accent);
+	font-family: var(--font-ui);
 	font-size: 0.8rem;
 	font-weight: 700;
 	letter-spacing: 0.1em;
@@ -492,7 +492,7 @@
 }
 
 .newsletter-nav a:hover {
-	color: var(--newsletter-ink);
+	color: var(--ctp-lavender);
 }
 
 .newsletter-empty {
@@ -503,6 +503,7 @@
 	margin: 0 0 1rem;
 	color: var(--newsletter-ink);
 	font-size: clamp(3rem, 10vw, 6rem);
+	font-family: var(--font-ui);
 	font-weight: 900;
 	letter-spacing: -0.05em;
 	line-height: 0.95;
@@ -512,16 +513,14 @@
 	display: inline-flex;
 	margin-top: 1rem;
 	padding: 0.75rem 1rem;
-	background: var(--newsletter-ink);
+	background: var(--newsletter-accent);
 	color: var(--newsletter-bg);
+	font-family: var(--font-ui);
 	font-weight: 700;
 	text-decoration: none;
 }
 
 @media (max-width: 720px) {
-	.newsletter-main {
-		padding-block: 2rem;
-	}
 	.newsletter-header__inner {
 		align-items: flex-start;
 		flex-direction: column;

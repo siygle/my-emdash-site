@@ -1,0 +1,20 @@
+---
+interface Props {
+	label?: string;
+}
+
+const { label = "sylee.dev" } = Astro.props;
+---
+
+<footer class="sylee-statusline">
+	<div>
+		<span><span class="ok">●</span> {label}</span>
+		<span>
+			<a href="/blog/rss.xml">rss</a>
+			<span class="sep">│</span>
+			<a href="https://github.com/siygle" target="_blank" rel="noopener noreferrer">github</a>
+			<span class="sep">│</span>
+			<span>© {new Date().getFullYear()} SY Lee</span>
+		</span>
+	</div>
+</footer>

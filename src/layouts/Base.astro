@@ -5,7 +5,8 @@ import { createPublicPageContext } from "emdash/page";
 import { Font } from "astro:assets";
 import { resolveBlogSiteIdentity } from "../utils/site-identity";
 import SyleeHeader from "../components/SyleeHeader.astro";
-import "../styles/theme.css";
+import StatusLine from "../components/StatusLine.astro";
+import "../styles/sylee.css";
 
 interface Props {
 	title: string;
@@ -63,32 +64,22 @@ const pageCtx = createPublicPageContext({
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<Font cssVariable="--font-sans" preload />
-		<Font cssVariable="--font-mono" />
+		<Font cssVariable="--font-mono" preload />
 		<title>{fullTitle}</title>
 		{siteFavicon && <link rel="icon" href={siteFavicon} />}
 		<EmDashHead page={pageCtx} />
-		<script is:inline>
-			// Apply theme immediately to prevent flash
-			(function () {
-				var c = document.cookie;
-				var i = c.indexOf("theme=");
-				var theme = i >= 0 ? c.slice(i + 6).split(";")[0] : null;
-				if (theme === "dark" || theme === "light") {
-					document.documentElement.classList.add(theme);
-				} else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-					document.documentElement.classList.add("dark");
-				}
-			})();
-		</script>
+		<meta name="theme-color" content="#e6e9ef" />
 	</head>
-	<body>
+	<body class="sylee-page">
 		<EmDashBodyStart page={pageCtx} />
 		<SyleeHeader />
 
 		<main>
-			<slot />
+			<div data-window={`~${Astro.url.pathname}`}>
+				<slot />
+			</div>
 		</main>
+		<StatusLine />
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
