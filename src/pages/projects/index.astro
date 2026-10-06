@@ -44,27 +44,51 @@ const cards = entries.map((entry) => {
 	};
 });
 
-const groups = kinds
-	.map((kind) => ({ ...kind, items: cards.filter((card) => card.kind === kind.id) }))
-	.filter((group) => group.items.length > 0);
+const kindLabel = new Map<string, string>(kinds.map((kind) => [kind.id, kind.label]));
+
+// Switcher tabs: "all" plus every kind that has at least one item
+const tabs = [
+	{ id: "all", label: "All", count: cards.length },
+	...kinds
+		.map((kind) => ({ ...kind, count: cards.filter((card) => card.kind === kind.id).length }))
+		.filter((kind) => kind.count > 0),
+];
+
+// ?kind=doc filters on the server too, so links work without JavaScript
+const requestedKind = Astro.url.searchParams.get("kind") ?? "all";
+const activeKind = tabs.some((tab) => tab.id === requestedKind) ? requestedKind : "all";
+const visibleCount = tabs.find((tab) => tab.id === activeKind)?.count ?? cards.length;
 ---
 
 <SyleeLayout title="Projects - Sy Lee" description="Projects, documents, and talks">
-	<div class="projects-wrap">
-		<header class="is-active" data-window="~/projects" data-window-meta={`${groups.length} groups`}>
-			<h1 class="sylee-blog-title reveal">ls ~/projects</h1>
-			<p class="sylee-page-desc reveal">GitHub projects, documents, and slide decks.</p>
-			{error && <p>Works collection is not available yet.</p>}
-			{!error && groups.length === 0 && <p>No published works yet.</p>}
-		</header>
+	<section class="projects is-active" data-window="~/projects" data-window-meta={`${visibleCount} items`} data-projects>
+		<h1 class="sylee-blog-title">ls ~/projects</h1>
+		<p class="sylee-page-desc">GitHub projects, documents, and slide decks.</p>
 
-		{groups.map((group) => (
-			<section class="project-group" id={group.id} data-window={`~/projects/${group.id}`} data-window-meta={`${group.items.length} items`}>
-				<h2>{group.label}</h2>
-				<ul>
-					{group.items.map((card) => (
-						<li id={card.entry.id}>
+		{error && <p class="projects-empty">Works collection is not available yet.</p>}
+		{!error && cards.length === 0 && <p class="projects-empty">No published works yet.</p>}
+
+		{cards.length > 0 && (
+			<>
+				{tabs.length > 1 && (
+					<nav class="kind-tabs" aria-label="Filter by kind">
+						{tabs.map((tab) => (
+							<a
+								href={tab.id === "all" ? "/projects" : `/projects?kind=${tab.id}`}
+								class="kind-tab"
+								data-kind-tab={tab.id}
+								aria-current={tab.id === activeKind ? "page" : undefined}
+							>
+								{tab.label.toLowerCase()} <span class="kind-count">{tab.count}</span>
+							</a>
+						))}
+					</nav>
+				)}
+				<ul class="work-grid">
+					{cards.map((card) => (
+						<li id={card.entry.id} data-kind={card.kind} hidden={activeKind !== "all" && card.kind !== activeKind}>
 							<article class="work-card">
+								<span class="work-kind">{kindLabel.get(card.kind) ?? card.kind}</span>
 								<h3>{card.entry.data.title}</h3>
 								{card.entry.data.summary && <p>{card.entry.data.summary}</p>}
 								{card.date && (
@@ -75,21 +99,74 @@ const groups = kinds
 						</li>
 					))}
 				</ul>
-			</section>
-		))}
-	</div>
+			</>
+		)}
+	</section>
 </SyleeLayout>
 
+<script>
+	// Instant kind filtering; the ?kind= links still work without JavaScript
+	function initKindTabs() {
+		const root = document.querySelector<HTMLElement>("[data-projects]");
+		if (!root || root.dataset.ready === "true") return;
+		root.dataset.ready = "true";
+		const tabs = root.querySelectorAll<HTMLAnchorElement>("[data-kind-tab]");
+		const items = root.querySelectorAll<HTMLElement>("[data-kind]");
+
+		function apply(kind: string) {
+			let shown = 0;
+			items.forEach((item) => {
+				const match = kind === "all" || item.dataset.kind === kind;
+				item.hidden = !match;
+				if (match) shown++;
+			});
+			tabs.forEach((tab) => {
+				if (tab.dataset.kindTab === kind) tab.setAttribute("aria-current", "page");
+				else tab.removeAttribute("aria-current");
+			});
+			root.dataset.windowMeta = `${shown} items`;
+		}
+
+		tabs.forEach((tab) => {
+			tab.addEventListener("click", (event) => {
+				event.preventDefault();
+				const kind = tab.dataset.kindTab ?? "all";
+				apply(kind);
+				const url = new URL(location.href);
+				if (kind === "all") url.searchParams.delete("kind");
+				else url.searchParams.set("kind", kind);
+				history.replaceState(null, "", url);
+			});
+		});
+
+		// Re-apply from the URL in case a cached page was rendered for another ?kind
+		const requested = new URL(location.href).searchParams.get("kind") ?? "all";
+		if ([...tabs].some((tab) => tab.dataset.kindTab === requested)) apply(requested);
+	}
+
+	initKindTabs();
+	document.addEventListener("astro:after-swap", initKindTabs);
+</script>
+
 <style>
-	.projects-wrap { display: flex; flex-direction: column; gap: calc(var(--wm-gap-in) * 2); }
-	.projects-wrap header .sylee-page-desc { margin-bottom: 0; }
-	.project-group,
-	.project-group li { scroll-margin-top: calc(var(--wm-bar-height) + var(--wm-gap-out)); }
-	.project-group h2 { margin: 0 0 1rem; font-family: var(--font-ui); font-size: 1.125rem; color: var(--ctp-text); }
-	.project-group h2::before { content: "❯ "; color: var(--ctp-green); }
-	.project-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: calc(var(--wm-gap-in) * 2); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+	.projects .sylee-page-desc { margin-bottom: 1.25rem; }
+	.projects-empty { margin: 0; font-family: var(--font-ui); color: var(--ctp-subtext0); }
+
+	/* kind switcher: Waybar-style workspace pills */
+	.kind-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 1.25rem; font-family: var(--font-ui); font-size: 0.8125rem; }
+	.kind-tab { display: inline-flex; align-items: center; gap: 0.4rem; height: 1.6rem; padding-inline: 0.6rem; color: var(--ctp-subtext0); background: var(--ctp-mantle); border: 1px solid var(--ctp-surface0); text-decoration: none; }
+	.kind-tab:hover { color: var(--ctp-text); background: var(--ctp-surface0); }
+	.kind-tab[aria-current="page"] { color: var(--ctp-base); background: var(--ctp-blue); border-color: var(--ctp-blue); }
+	.kind-count { opacity: 0.7; }
+
+	.work-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: calc(var(--wm-gap-in) * 2); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+	.work-grid li { scroll-margin-top: calc(var(--wm-bar-height) + var(--wm-gap-out)); }
+	.work-grid li[hidden] { display: none; }
 	.work-card { height: 100%; border: 1px solid var(--ctp-surface0); background: var(--ctp-mantle); padding: 1rem 1rem 1.1rem; }
-	.project-group li:target .work-card { border-color: var(--ctp-blue); }
+	.work-grid li:target .work-card { border-color: var(--ctp-blue); }
+	.work-kind { display: inline-block; margin-bottom: 0.5rem; font-family: var(--font-ui); font-size: 0.7rem; color: var(--ctp-blue); }
+	.work-kind::before { content: "["; color: var(--ctp-overlay1); }
+	.work-kind::after { content: "]"; color: var(--ctp-overlay1); }
 	.work-card h3 { margin: 0 0 0.4rem; font-family: var(--font-ui); font-size: 1rem; color: var(--ctp-text); }
 	.work-card p { margin: 0 0 0.6rem; color: var(--ctp-subtext1); line-height: 1.55; }
 	.work-card time { display: block; margin-bottom: 0.8rem; font-family: var(--font-ui); color: var(--ctp-subtext0); font-size: 0.75rem; }
