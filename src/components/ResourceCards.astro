@@ -76,28 +76,26 @@ function thumbSrc(resource: Resource): string | undefined {
 <style>
 	.resource-grid {
 		display: grid;
-		gap: 1rem;
+		gap: calc(var(--wm-gap-in) * 2);
 		padding: 0;
 		list-style: none;
 		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 	}
 	.card {
 		display: block;
-		border-radius: 10px;
 		overflow: hidden;
 		text-decoration: none;
 		color: inherit;
-		border: 1px solid #e5e7eb;
-		transition: transform 0.15s, box-shadow 0.15s;
+		background: var(--ctp-base);
+		border: 2px solid var(--ctp-surface1);
 	}
 	.card:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+		border-image: var(--wm-active-border) 1;
 	}
 	.thumb {
 		position: relative;
 		aspect-ratio: 16 / 9;
-		background: #f3f4f6;
+		background: var(--ctp-crust);
 	}
 	.thumb img {
 		width: 100%;
@@ -109,24 +107,28 @@ function thumbSrc(resource: Resource): string | undefined {
 		display: grid;
 		place-items: center;
 		height: 100%;
+		font-family: var(--font-ui);
 		font-size: 1.5rem;
 		font-weight: 700;
-		opacity: 0.5;
+		color: var(--ctp-overlay1);
 	}
 	.badge {
 		position: absolute;
 		top: 0.5rem;
 		left: 0.5rem;
-		font-size: 0.75rem;
-		padding: 0.15rem 0.5rem;
-		border-radius: 999px;
-		background: rgb(0 0 0 / 0.65);
-		color: #fff;
+		font-family: var(--font-ui);
+		font-size: 0.7rem;
+		padding: 0.1rem 0.45rem;
+		background: var(--ctp-blue);
+		color: var(--ctp-base);
 	}
 	.label {
 		display: block;
-		padding: 0.6rem 0.8rem;
+		padding: 0.5rem 0.75rem;
+		font-family: var(--font-ui);
+		font-size: 0.8125rem;
 		font-weight: 600;
-		color: #111827;
+		color: var(--ctp-text);
+		border-top: 1px solid var(--ctp-surface0);
 	}
 </style>

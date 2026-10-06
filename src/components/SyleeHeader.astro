@@ -1,215 +1,351 @@
 ---
-const isLoggedIn = !!Astro.locals.user;
-const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.218.127.324.2.728.232 1.082.093l1.216-.477a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a7.723 7.723 0 010 .356c-.007.379.138.751.431.992l1.003.827c.424.35.534.955.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.477c-.354-.139-.758-.107-1.082.093a6.57 6.57 0 01-.218.127c-.332.184-.582.496-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.218-.127c-.324-.2-.728-.232-1.082-.093l-1.216.477a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.003-.827c.293-.241.438-.613.431-.992a7.723 7.723 0 010-.356c.007-.379-.138-.751-.431-.992l-1.003-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.216.477c.354.139.758.107 1.082-.093.071-.044.144-.087.218-.127.332-.184.582-.496.645-.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
+import { palettes } from "../palettes";
+import { PALETTE_COOKIE, themeConfig } from "../theme.config";
 
-const navItems = [
-	{
-		href: "/blog",
-		label: "Blog",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>`,
-	},
-	{
-		href: "/murmur",
-		label: "Murmur",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>`,
-	},
-	{
-		href: "/tags",
-		label: "Tags",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.56a18.7 18.7 0 005.107-3.166 18.7 18.7 0 003.166-5.107c.312-.826.139-1.908-.56-2.607L14.159 3.66A2.25 2.25 0 0012.568 3H9.568z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>`,
-	},
-	{
-		href: "/projects",
-		label: "Projects",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" /></svg>`,
-	},
-	{
-		href: "/newsletter",
-		label: "Newsletter",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>`,
-	},
-	{
-		href: "/search",
-		label: "Search",
-		icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>`,
-	},
+const isLoggedIn = !!Astro.locals.user;
+const pathname = Astro.url.pathname;
+
+const workspaces = [
+	{ href: "/", label: "home" },
+	{ href: "/blog", label: "blog" },
+	{ href: "/murmur", label: "murmur" },
+	{ href: "/tags", label: "tags" },
+	{ href: "/projects", label: "projects" },
+	{ href: "/newsletter", label: "newsletter" },
 ];
+
+const defaultPalette =
+	palettes.find((palette) => palette.id === themeConfig.defaultPalette) ?? palettes[0];
+
+function isActive(href: string) {
+	if (href === "/") return pathname === "/";
+	return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const searchIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>`;
+const rssIcon = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6.18" cy="17.82" r="2.18" /><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" /></svg>`;
+const adminIcon = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.218.127.324.2.728.232 1.082.093l1.216-.477a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a7.723 7.723 0 010 .356c-.007.379.138.751.431.992l1.003.827c.424.35.534.955.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.477c-.354-.139-.758-.107-1.082.093a6.57 6.57 0 01-.218.127c-.332.184-.582.496-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.218-.127c-.324-.2-.728-.232-1.082-.093l-1.216.477a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.003-.827c.293-.241.438-.613.431-.992a7.723 7.723 0 010-.356c-.007-.379-.138-.751-.431-.992l-1.003-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.216.477c.354.139.758.107 1.082-.093.071-.044.144-.087.218-.127.332-.184.582-.496.645-.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
 ---
 
-<header class="sylee-header">
-	<nav class="sylee-nav">
-		<a href="/" class="sylee-home" aria-label="Home">
-			<img src="/avatar.jpg" alt="Avatar" class="sylee-home-avatar" />
+<header class="waybar">
+	<nav class="waybar-group" aria-label="Workspaces">
+		<a href="/" class="waybar-avatar" aria-label="Home">
+			<img src="/avatar.jpg" alt="" />
 		</a>
-
-		<button type="button" class="sylee-menu-button" aria-label="Toggle menu" aria-expanded="false" data-menu-button>
-			<svg class="sylee-menu-icon sylee-menu-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-			</svg>
-			<svg class="sylee-menu-icon sylee-menu-close" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-			</svg>
-		</button>
-
-		<div class="sylee-desktop-nav">
-			{navItems.map((item) => (
-				<a href={item.href} class="sylee-nav-icon" aria-label={item.label}>
-					<Fragment set:html={item.icon} />
-					<span>{item.label}</span>
-				</a>
-			))}
-			{isLoggedIn && (
-				<a href="/_emdash/admin" class="sylee-nav-icon sylee-admin-icon" aria-label="Admin" title="Admin">
-					<Fragment set:html={adminIcon} />
-					<span>Admin</span>
-				</a>
-			)}
-		</div>
+		{workspaces.map((ws, index) => (
+			<a
+				href={ws.href}
+				class="ws-pill"
+				aria-current={isActive(ws.href) ? "page" : undefined}
+				aria-label={ws.label}
+			>
+				<span class="ws-num">{index + 1}</span>
+				<span class="ws-label">{ws.label}</span>
+			</a>
+		))}
 	</nav>
-	<div class="sylee-mobile-nav" data-mobile-menu>
-		{navItems.map((item) => <a href={item.href}>{item.label}</a>)}
-		{isLoggedIn && <a href="/_emdash/admin">Admin</a>}
+
+	<time class="waybar-clock" data-waybar-clock aria-hidden="true"></time>
+
+	<div class="waybar-group">
+		<a href="/search" class="waybar-module" aria-label="Search" aria-current={isActive("/search") ? "page" : undefined}>
+			<Fragment set:html={searchIcon} />
+		</a>
+		{themeConfig.paletteSwitcher && (
+			<>
+				<span class="waybar-sep" aria-hidden="true">│</span>
+				<details class="palette-picker" data-palette-picker>
+					<summary class="waybar-module" aria-label="Choose color palette">
+						<span class="palette-dot" aria-hidden="true" />
+						<span class="palette-current" data-palette-current>{defaultPalette.name}</span>
+					</summary>
+					<div class="palette-menu" role="listbox" aria-label="Color palettes">
+						{palettes.map((palette) => (
+							<button
+								type="button"
+								role="option"
+								class="palette-option"
+								data-palette-option={palette.id}
+								aria-selected={palette.id === defaultPalette.id ? "true" : "false"}
+							>
+								<span
+									class="palette-swatch"
+									style={`--sw-bg: ${palette.swatch[0]}; --sw-fg: ${palette.swatch[1]}; --sw-accent: ${palette.swatch[2]};`}
+									aria-hidden="true"
+								/>
+								<span class="palette-name">{palette.name}</span>
+								<span class="palette-mode">{palette.mode}</span>
+							</button>
+						))}
+					</div>
+				</details>
+			</>
+		)}
+		<span class="waybar-sep" aria-hidden="true">│</span>
+		<a href="/blog/rss.xml" class="waybar-module" aria-label="RSS feed">
+			<Fragment set:html={rssIcon} />
+		</a>
+		{isLoggedIn && (
+			<>
+				<span class="waybar-sep" aria-hidden="true">│</span>
+				<a href="/_emdash/admin" class="waybar-module" aria-label="Admin" title="Admin">
+					<Fragment set:html={adminIcon} />
+				</a>
+			</>
+		)}
 	</div>
 </header>
 
 <script>
-	function initSyleeMenu() {
-		const button = document.querySelector("[data-menu-button]");
-		const menu = document.querySelector("[data-mobile-menu]");
-		if (!button || !menu || button.getAttribute("data-ready") === "true") return;
-		button.setAttribute("data-ready", "true");
-		button.addEventListener("click", () => {
-			const open = button.getAttribute("aria-expanded") === "true";
-			button.setAttribute("aria-expanded", String(!open));
-			menu.classList.toggle("is-open", !open);
-		});
-		menu.querySelectorAll("a").forEach((link) => {
-			link.addEventListener("click", () => {
-				button.setAttribute("aria-expanded", "false");
-				menu.classList.remove("is-open");
-			});
+	const clockFormat = new Intl.DateTimeFormat("en-GB", {
+		weekday: "short",
+		day: "2-digit",
+		month: "short",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	});
+
+	function initWaybarClock() {
+		const clock = document.querySelector<HTMLElement>("[data-waybar-clock]");
+		if (!clock || clock.dataset.ready === "true") return;
+		clock.dataset.ready = "true";
+		const tick = () => {
+			clock.textContent = clockFormat.format(new Date()).replace(",", "");
+		};
+		tick();
+		setInterval(tick, 30_000);
+	}
+
+	initWaybarClock();
+	document.addEventListener("astro:after-swap", initWaybarClock);
+
+	// Palette picker: set <html data-palette>, remember it in a cookie, sync labels
+	function syncPaletteUi() {
+		const active = document.documentElement.dataset.palette;
+		document.querySelectorAll<HTMLButtonElement>("[data-palette-option]").forEach((option) => {
+			const selected = option.dataset.paletteOption === active;
+			option.setAttribute("aria-selected", String(selected));
+			if (selected) {
+				const name = option.querySelector(".palette-name")?.textContent ?? "";
+				document.querySelectorAll("[data-palette-current]").forEach((label) => {
+					label.textContent = name;
+				});
+			}
 		});
 	}
-	initSyleeMenu();
-	document.addEventListener("astro:after-swap", initSyleeMenu);
+
+	function initPalettePicker() {
+		const picker = document.querySelector<HTMLDetailsElement>("[data-palette-picker]");
+		if (!picker || picker.dataset.ready === "true") return;
+		picker.dataset.ready = "true";
+		picker.querySelectorAll<HTMLButtonElement>("[data-palette-option]").forEach((option) => {
+			option.addEventListener("click", () => {
+				const id = option.dataset.paletteOption;
+				if (!id) return;
+				document.documentElement.dataset.palette = id;
+				const secure = location.protocol === "https:" ? "; Secure" : "";
+				document.cookie = `${PALETTE_COOKIE}=${id}; path=/; max-age=31536000; SameSite=Lax${secure}`;
+				syncPaletteUi();
+				picker.open = false;
+			});
+		});
+		document.addEventListener("click", (event) => {
+			if (picker.open && !picker.contains(event.target as Node)) picker.open = false;
+		});
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "Escape" && picker.open) {
+				picker.open = false;
+				picker.querySelector("summary")?.focus();
+			}
+		});
+		syncPaletteUi();
+	}
+
+	initPalettePicker();
+	document.addEventListener("astro:after-swap", initPalettePicker);
 </script>
 
 <style>
-	.sylee-header {
+	.waybar {
 		position: sticky;
 		top: 0;
 		z-index: 50;
-		background: rgba(255, 255, 255, 0.8);
-		backdrop-filter: blur(8px);
-		border-bottom: 1px solid #e5e7eb;
-	}
-	.sylee-nav {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 1rem 1.25rem;
+		height: var(--wm-bar-height);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 0.5rem;
+		padding-inline: var(--wm-gap-out);
+		background: color-mix(in srgb, var(--ctp-mantle) 92%, transparent);
+		backdrop-filter: blur(6px);
+		border-bottom: 1px solid var(--ctp-surface0);
+		font-family: var(--font-ui);
+		font-size: 0.8125rem;
+		color: var(--ctp-subtext1);
 	}
-	.sylee-home { display: flex; align-items: center; gap: 0.5rem; border-radius: 999px; }
-	.sylee-home-avatar {
-		width: 2rem;
-		height: 2rem;
-		border-radius: 999px;
-		transition: transform 150ms ease;
-	}
-	.sylee-home-avatar:hover { transform: scale(1.05); }
-	.sylee-desktop-nav {
+	.waybar-group {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.2rem;
+		min-width: 0;
 	}
-	.sylee-nav-icon {
-		position: relative;
-		color: #4b5563;
-		transition:
-			color 150ms ease,
-			transform 150ms ease;
-		text-decoration: none;
+	.waybar-avatar {
+		display: flex;
+		margin-right: 0.35rem;
+		flex-shrink: 0;
 	}
-	.sylee-nav-icon:hover {
-		color: #111827;
-		transform: translateY(-1px);
-	}
-	.sylee-nav-icon :global(svg) {
+	.waybar-avatar img {
 		width: 1.25rem;
 		height: 1.25rem;
+		border-radius: 999px;
+		object-fit: cover;
 	}
-	.sylee-nav-icon span {
-		pointer-events: none;
+	.ws-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		height: 1.5rem;
+		padding-inline: 0.5rem;
+		color: var(--ctp-subtext0);
+		text-decoration: none;
+		transition: color 120ms ease, background-color 120ms ease;
+	}
+	.ws-pill:hover {
+		color: var(--ctp-text);
+		background: var(--ctp-surface0);
+	}
+	.ws-num {
+		color: var(--ctp-overlay1);
+	}
+	.ws-pill[aria-current="page"],
+	.ws-pill[aria-current="page"] .ws-num {
+		color: var(--ctp-base);
+		background: var(--ctp-blue);
+	}
+	.waybar-clock {
 		position: absolute;
 		left: 50%;
-		bottom: -2rem;
 		transform: translateX(-50%);
-		padding: 0.25rem 0.5rem;
-		font-size: 0.75rem;
-		line-height: 1rem;
-		color: #fff;
-		background: #1f2937;
-		border-radius: 0.25rem;
-		opacity: 0;
-		transition: opacity 150ms ease;
-		white-space: nowrap;
+		color: var(--ctp-text);
+		pointer-events: none;
 	}
-	.sylee-nav-icon:hover span { opacity: 1; }
-	.sylee-admin-icon {
-		color: #4b5563;
+	.waybar-module {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 1.5rem;
+		min-width: 1.75rem;
+		padding-inline: 0.35rem;
+		color: var(--ctp-subtext0);
+		transition: color 120ms ease, background-color 120ms ease;
 	}
-	.sylee-admin-icon:hover {
-		color: #111827;
+	.waybar-module:hover,
+	.waybar-module[aria-current="page"] {
+		color: var(--ctp-blue);
+		background: var(--ctp-surface0);
 	}
-	.sylee-menu-button {
+	.waybar-module :global(svg) {
+		width: 1rem;
+		height: 1rem;
+	}
+	/* Palette picker */
+	.palette-picker {
+		position: relative;
+	}
+	.palette-picker summary {
+		list-style: none;
+		cursor: pointer;
+		gap: 0.4rem;
+	}
+	.palette-picker summary::-webkit-details-marker {
 		display: none;
-		padding: 0.75rem;
-		margin: -0.25rem;
-		color: #4b5563;
+	}
+	.palette-picker[open] summary {
+		color: var(--ctp-text);
+		background: var(--ctp-surface0);
+	}
+	.palette-dot {
+		width: 0.7rem;
+		height: 0.7rem;
+		background: var(--ctp-blue);
+		box-shadow: inset -0.35rem 0 0 var(--ctp-text);
+	}
+	.palette-menu {
+		position: absolute;
+		top: calc(100% + var(--wm-gap-out));
+		right: 0;
+		width: 16rem;
+		max-height: min(28rem, 70vh);
+		overflow-y: auto;
+		padding: calc(var(--wm-title-height) + 0.25rem) 0.25rem 0.25rem;
+		background: var(--ctp-base);
+		border: var(--wm-border-width) solid transparent;
+		border-image: var(--wm-active-border) 1;
+		z-index: 1000;
+	}
+	.palette-menu::before {
+		content: "omarchy-theme-set";
+		position: absolute;
+		top: 0;
+		inset-inline: 0;
+		height: var(--wm-title-height);
+		display: flex;
+		align-items: center;
+		padding-inline: 0.75rem;
+		font-size: 0.75rem;
+		color: var(--ctp-blue);
+		background: var(--ctp-mantle);
+		border-bottom: 1px solid var(--ctp-surface0);
+	}
+	.palette-option {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.25rem 0.5rem;
+		font: inherit;
+		text-align: left;
+		color: var(--ctp-subtext1);
 		background: transparent;
-		border: none;
+		border: 0;
 		cursor: pointer;
 	}
-	.sylee-menu-icon { width: 1.5rem; height: 1.5rem; transition: transform 200ms ease; }
-	.sylee-menu-close { display: none; }
-	.sylee-menu-button[aria-expanded="true"] .sylee-menu-open { display: none; }
-	.sylee-menu-button[aria-expanded="true"] .sylee-menu-close { display: block; transform: rotate(90deg); }
-	.sylee-mobile-nav {
-		display: none;
-		border-top: 1px solid #e5e7eb;
-		background: #fff;
-		overflow: hidden;
-		max-height: 0;
-		opacity: 0;
-		transition:
-			max-height 200ms ease,
-			opacity 200ms ease;
+	.palette-option:hover,
+	.palette-option:focus-visible {
+		color: var(--ctp-text);
+		background: var(--ctp-mantle);
 	}
-	.sylee-mobile-nav a {
-		display: block;
-		padding: 0.75rem 1.25rem;
-		color: #4b5563;
-		text-decoration: none;
+	.palette-option[aria-selected="true"] {
+		color: var(--ctp-base);
+		background: var(--ctp-blue);
 	}
-	.sylee-mobile-nav a:hover { color: #111827; }
-	.sylee-mobile-nav.is-open { max-height: 18rem; opacity: 1; }
+	.palette-swatch {
+		width: 1.6rem;
+		height: 0.9rem;
+		background: linear-gradient(90deg, var(--sw-bg) 0 40%, var(--sw-fg) 40% 70%, var(--sw-accent) 70%);
+		outline: 1px solid var(--ctp-surface0);
+	}
+	.palette-mode {
+		font-size: 0.7rem;
+		opacity: 0.7;
+	}
+	.waybar-sep {
+		color: var(--ctp-surface2);
+		user-select: none;
+	}
 
-	:global(html.dark) .sylee-header {
-		background: rgba(17, 24, 39, 0.8);
-		border-bottom-color: #374151;
+	/* Narrow screens: numbers only, clock hidden (as Waybar on a small output) */
+	@media (max-width: 1000px) {
+		.waybar-clock {
+			display: none;
+		}
 	}
-	:global(html.dark) .sylee-nav-icon,
-	:global(html.dark) .sylee-menu-button,
-	:global(html.dark) .sylee-mobile-nav a { color: #d1d5db; }
-	:global(html.dark) .sylee-nav-icon:hover,
-	:global(html.dark) .sylee-mobile-nav a:hover { color: #fff; }
-	:global(html.dark) .sylee-mobile-nav { background: #111827; border-top-color: #374151; }
-
-	@media (max-width: 640px) {
-		.sylee-desktop-nav { display: none; }
-		.sylee-menu-button { display: block; }
-		.sylee-mobile-nav { display: block; }
+	@media (max-width: 760px) {
+		.ws-label,
+		.palette-current {
+			display: none;
+		}
 	}
 </style>

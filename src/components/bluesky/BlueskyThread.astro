@@ -50,18 +50,15 @@ const lastPost = posts[posts.length - 1];
 	.bsky-thread {
 		position: relative;
 		padding: 1rem;
-		border: 1px solid rgba(148, 163, 184, 0.26);
-		border-radius: 1.35rem;
-		background:
-			radial-gradient(circle at 0 0, rgba(20, 184, 166, 0.10), transparent 26%),
-			linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.76));
-		box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+		border: 1px solid var(--ctp-surface0);
+		border-radius: 0;
+		background: var(--ctp-mantle);
+		box-shadow: none;
 		transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 	}
 	.bsky-thread:hover {
-		transform: translateY(-2px);
-		border-color: rgba(20, 184, 166, 0.38);
-		box-shadow: 0 22px 55px rgba(15, 23, 42, 0.09);
+		border-image: var(--wm-active-border) 1;
+		box-shadow: none;
 	}
 	.bsky-thread__head {
 		display: flex;
@@ -70,10 +67,10 @@ const lastPost = posts[posts.length - 1];
 		gap: 1rem;
 		margin-bottom: 0.9rem;
 		padding-bottom: 0.85rem;
-		border-bottom: 1px solid rgba(148, 163, 184, 0.20);
+		border-bottom: 1px solid var(--ctp-surface0);
 	}
 	.bsky-thread__date {
-		color: #94a3b8;
+		color: var(--ctp-subtext0);
 		font-size: 0.74rem;
 		font-weight: 700;
 		letter-spacing: 0.04em;
@@ -85,15 +82,15 @@ const lastPost = posts[posts.length - 1];
 		align-items: center;
 		gap: 0.45rem;
 		min-width: 0;
-		color: #475569;
+		color: var(--ctp-subtext1);
 		font-size: 0.82rem;
 		font-weight: 700;
 	}
 	.bsky-thread__label strong {
 		padding: 0.2rem 0.45rem;
-		border-radius: 999px;
-		background: rgba(20, 184, 166, 0.12);
-		color: #0f766e;
+		border-radius: 0;
+		background: color-mix(in srgb, var(--ctp-blue) 12%, transparent);
+		color: var(--ctp-blue);
 		font-size: 0.72rem;
 		white-space: nowrap;
 	}
@@ -103,9 +100,9 @@ const lastPost = posts[posts.length - 1];
 		justify-content: center;
 		width: 1.55rem;
 		height: 1.55rem;
-		border-radius: 999px;
-		background: #0f172a;
-		color: #fff;
+		border-radius: 0;
+		background: var(--ctp-text);
+		color: var(--ctp-base);
 	}
 	.bsky-thread__icon svg { width: 0.92rem; height: 0.92rem; }
 	.bsky-thread__posts {
@@ -114,7 +111,7 @@ const lastPost = posts[posts.length - 1];
 		gap: 0.8rem;
 	}
 	@media (max-width: 640px) {
-		.bsky-thread { padding: 0.8rem; border-radius: 1.1rem; }
+		.bsky-thread { padding: 0.8rem; }
 		.bsky-thread__head { align-items: flex-start; flex-direction: column; gap: 0.45rem; }
 	}
 </style>

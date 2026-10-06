@@ -44,8 +44,8 @@ function formatShortDate(date: Date | null | undefined) {
 ---
 
 <SyleeLayout title="Blog - Sy Lee" description="Blog posts about web development and technology">
-  <div class="sylee-container">
-    <h1 class="sylee-blog-title reveal">Blog</h1>
+  <div class="is-active" data-window="~/blog" data-window-meta={`${posts.length} files`}>
+    <h1 class="sylee-blog-title reveal">ls ~/blog</h1>
     <p class="sylee-page-desc reveal">{posts.length} posts in the archive</p>
 
     {groupedPosts.length === 0 ? (

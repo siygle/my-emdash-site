@@ -2,8 +2,12 @@
 import { getSiteSettings } from "emdash";
 import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
+import { Font } from "astro:assets";
 import SyleeHeader from "../components/SyleeHeader.astro";
+import StatusLine from "../components/StatusLine.astro";
 import "../styles/sylee.css";
+import PaletteHead from "../components/PaletteHead.astro";
+import { themeConfig } from "../theme.config";
 
 interface Props {
   title: string;
@@ -53,10 +57,13 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette={themeConfig.defaultPalette}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e6e9ef" />
+    <Font cssVariable="--font-mono" preload />
+    <PaletteHead />
     <title>{fullTitle}</title>
     <link rel="alternate" type="application/rss+xml" title="Blog RSS" href="/blog/rss.xml" />
     <link rel="alternate" type="application/rss+xml" title="Newsletter RSS" href="/newsletter/rss.xml" />
@@ -68,6 +75,7 @@ const pageCtx = createPublicPageContext({
     <main>
       <slot />
     </main>
+    <StatusLine />
     <EmDashBodyEnd page={pageCtx} />
   </body>
 </html>

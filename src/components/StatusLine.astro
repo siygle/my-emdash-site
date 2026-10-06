@@ -1,0 +1,27 @@
+---
+import { palettes } from "../palettes";
+import { themeConfig } from "../theme.config";
+
+interface Props {
+	label?: string;
+}
+
+const { label = "sylee.dev" } = Astro.props;
+const defaultPalette =
+	palettes.find((palette) => palette.id === themeConfig.defaultPalette) ?? palettes[0];
+---
+
+<footer class="sylee-statusline">
+	<div>
+		<span><span class="ok">●</span> {label}</span>
+		<span>
+			<a href="/blog/rss.xml">rss</a>
+			<span class="sep">│</span>
+			<a href="https://github.com/siygle" target="_blank" rel="noopener noreferrer">github</a>
+			<span class="sep">│</span>
+			<span>© {new Date().getFullYear()} SY Lee</span>
+			<span class="sep">│</span>
+			<span data-palette-current>{defaultPalette.name}</span>
+		</span>
+	</div>
+</footer>

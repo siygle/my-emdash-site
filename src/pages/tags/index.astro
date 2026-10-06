@@ -39,10 +39,10 @@ function tagTone(index: number) {
 
 <SyleeLayout title="Tags - Sy Lee" description="Browse posts by tag">
 	<div class="sylee-tags-modern-page">
-		<header class="sylee-modern-hero sylee-tags-hero reveal">
+		<header class="sylee-modern-hero sylee-tags-hero reveal is-active" data-window="~/tags" data-window-meta={`${tags.length} tags`}>
 			<div>
-				<p class="sylee-eyebrow">Explore the archive</p>
-				<h1>Tags</h1>
+				<p class="sylee-eyebrow">explore the archive</p>
+				<h1>ls ~/tags</h1>
 				<p class="sylee-modern-subtitle">
 					A map of recurring topics across notes, experiments, and long-form posts.
 				</p>
@@ -67,7 +67,7 @@ function tagTone(index: number) {
 		)}
 
 		{otherTags.length > 0 && (
-			<section class="sylee-tags-section reveal reveal-delay-2">
+			<section class="sylee-tags-section reveal reveal-delay-2" data-window="~/tags — more">
 				<div class="sylee-section-row">
 					<h2>More tags</h2>
 					<p>{otherTags.length} additional topics</p>

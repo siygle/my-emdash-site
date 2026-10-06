@@ -19,8 +19,8 @@ function hrefFor(result: { collection?: string; type?: string; slug?: string | n
 ---
 
 <SyleeLayout title={query ? `Search: ${query}` : "Search"} description="Search posts and newsletter issues">
-  <section class="sylee-container">
-    <h1 class="sylee-page-title reveal">Search</h1>
+  <section class="is-active" data-window="~/search" data-window-meta="grep">
+    <h1 class="sylee-page-title reveal">grep -r ~</h1>
     <form method="get" action="/search" class="sylee-search-form reveal reveal-delay-1">
       <input
         type="search"

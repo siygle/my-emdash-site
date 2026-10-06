@@ -2,9 +2,13 @@
 import { getSiteSettings } from "emdash";
 import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
+import { Font } from "astro:assets";
 import SyleeHeader from "../components/SyleeHeader.astro";
+import StatusLine from "../components/StatusLine.astro";
 import "../styles/sylee.css";
 import "../styles/newsletter.css";
+import PaletteHead from "../components/PaletteHead.astro";
+import { themeConfig } from "../theme.config";
 
 interface Props {
   title?: string;
@@ -42,7 +46,7 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-palette={themeConfig.defaultPalette}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -51,26 +55,21 @@ const pageCtx = createPublicPageContext({
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title="Newsletter RSS" href="/newsletter/rss.xml" />
     <link rel="alternate" type="application/rss+xml" title="Blog RSS" href="/blog/rss.xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="#e6e9ef" />
+    <Font cssVariable="--font-mono" preload />
+    <PaletteHead />
     <EmDashHead page={pageCtx} />
   </head>
   <body class="sylee-page newsletter-page">
     <EmDashBodyStart page={pageCtx} />
     <SyleeHeader />
 
-    <main class="newsletter-container newsletter-main">
-      <slot />
-    </main>
-
-    <footer class="newsletter-container newsletter-footer">
-      <div>
-        <a href="/newsletter">All Issues</a>
-        <span>·</span>
-        <a href="/newsletter/rss.xml">RSS</a>
+    <main>
+      <div class="newsletter-main" data-window={`~/newsletter — ${title || siteTitle}`} data-window-meta="zh-Hant">
+        <slot />
       </div>
-    </footer>
+    </main>
+    <StatusLine label="newsletter" />
     <EmDashBodyEnd page={pageCtx} />
   </body>
 </html>

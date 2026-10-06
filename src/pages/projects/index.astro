@@ -51,14 +51,15 @@ const groups = kinds
 
 <SyleeLayout title="Projects - Sy Lee" description="Projects, documents, and talks">
 	<div class="projects-wrap">
-		<h1 class="sylee-blog-title reveal">Projects</h1>
-		<p class="sylee-page-desc reveal">GitHub projects, documents, and slide decks.</p>
-
-		{error && <p>Works collection is not available yet.</p>}
-		{!error && groups.length === 0 && <p>No published works yet.</p>}
+		<header class="is-active" data-window="~/projects" data-window-meta={`${groups.length} groups`}>
+			<h1 class="sylee-blog-title reveal">ls ~/projects</h1>
+			<p class="sylee-page-desc reveal">GitHub projects, documents, and slide decks.</p>
+			{error && <p>Works collection is not available yet.</p>}
+			{!error && groups.length === 0 && <p>No published works yet.</p>}
+		</header>
 
 		{groups.map((group) => (
-			<section class="project-group" id={group.id}>
+			<section class="project-group" id={group.id} data-window={`~/projects/${group.id}`} data-window-meta={`${group.items.length} items`}>
 				<h2>{group.label}</h2>
 				<ul>
 					{group.items.map((card) => (
@@ -80,12 +81,16 @@ const groups = kinds
 </SyleeLayout>
 
 <style>
-	.projects-wrap { max-width: 72rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
-	.project-group { margin-top: 2.5rem; }
-	.project-group h2 { margin: 0 0 1rem; font-size: 1.25rem; color: #111827; }
-	.project-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-	.work-card { height: 100%; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; padding: 1rem 1rem 1.1rem; }
-	.work-card h3 { margin: 0 0 0.4rem; font-size: 1.15rem; color: #111827; }
-	.work-card p { margin: 0 0 0.6rem; color: #4b5563; line-height: 1.5; }
-	.work-card time { display: block; margin-bottom: 0.8rem; color: #6b7280; font-size: 0.85rem; }
+	.projects-wrap { display: flex; flex-direction: column; gap: calc(var(--wm-gap-in) * 2); }
+	.projects-wrap header .sylee-page-desc { margin-bottom: 0; }
+	.project-group,
+	.project-group li { scroll-margin-top: calc(var(--wm-bar-height) + var(--wm-gap-out)); }
+	.project-group h2 { margin: 0 0 1rem; font-family: var(--font-ui); font-size: 1.125rem; color: var(--ctp-text); }
+	.project-group h2::before { content: "❯ "; color: var(--ctp-green); }
+	.project-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: calc(var(--wm-gap-in) * 2); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+	.work-card { height: 100%; border: 1px solid var(--ctp-surface0); background: var(--ctp-mantle); padding: 1rem 1rem 1.1rem; }
+	.project-group li:target .work-card { border-color: var(--ctp-blue); }
+	.work-card h3 { margin: 0 0 0.4rem; font-family: var(--font-ui); font-size: 1rem; color: var(--ctp-text); }
+	.work-card p { margin: 0 0 0.6rem; color: var(--ctp-subtext1); line-height: 1.55; }
+	.work-card time { display: block; margin-bottom: 0.8rem; font-family: var(--font-ui); color: var(--ctp-subtext0); font-size: 0.75rem; }
 </style>

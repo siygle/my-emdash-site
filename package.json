@@ -10,7 +10,8 @@
 		"deploy": "astro build && wrangler deploy",
 		"typecheck": "astro check",
 		"bootstrap": "emdash init && emdash seed",
-		"seed": "emdash seed"
+		"seed": "emdash seed",
+		"sync-palettes": "node scripts/sync-palettes.mjs"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "^14.3.3",

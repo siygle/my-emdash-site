@@ -63,10 +63,10 @@ const latestLabel = latestDate
 
 <SyleeLayout title="Murmur - Sy Lee" description="My thoughts and musings from Bluesky">
 	<div class="sylee-murmur-page">
-		<header class="sylee-modern-hero sylee-murmur-hero reveal">
+		<header class="sylee-modern-hero sylee-murmur-hero reveal" data-window={`bsky://${BLUESKY_HANDLE}`} data-window-meta="murmur">
 			<div>
-				<p class="sylee-eyebrow">Bluesky microblog</p>
-				<h1>Murmur</h1>
+				<p class="sylee-eyebrow">bluesky microblog</p>
+				<h1>tail -f murmur</h1>
 				<p class="sylee-modern-subtitle">
 					Short thoughts, links, and work-in-progress notes from
 					<a href={`https://bsky.app/profile/${BLUESKY_HANDLE}`} target="_blank" rel="noopener noreferrer">
@@ -92,6 +92,7 @@ const latestLabel = latestDate
 		) : weekGroups.length === 0 ? (
 			<p class="sylee-empty-card">No posts yet.</p>
 		) : (
+			<div class="is-active" data-window="~/murmur — timeline">
 			<div class="sylee-murmur-timeline">
 				{weekGroups.map((group, groupIndex) => (
 					<section class="sylee-murmur-week reveal" style={`transition-delay: ${groupIndex * 80}ms`}>
@@ -112,6 +113,7 @@ const latestLabel = latestDate
 						</div>
 					</section>
 				))}
+			</div>
 			</div>
 		)}
 
