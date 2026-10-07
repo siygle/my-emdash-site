@@ -41,6 +41,8 @@
 	--ctp-maroon: var(--om-bright-red);
 	--ctp-mauve: var(--om-magenta);
 	--ctp-pink: var(--om-bright-magenta);
+	/* Inline code. Raw red fails contrast on several palettes (Lupine, Miasma, Rose Pine). */
+	--ctp-code: color-mix(in srgb, var(--om-red) 50%, var(--om-foreground));
 
 	/* --- Hyprland window manager --- */
 	--wm-active-border: var(--om-active-border); /* Omarchy's own border per palette */
@@ -75,4 +77,32 @@
 	/* --- Shadows: flat --- */
 	--shadow-dropdown: none;
 	--shadow-btn-active: none;
+}
+
+/*
+  EmDash Portable Text ships unlayered colors (#1e1e1e / #e0e0e0). On light
+  Omarchy palettes that text disappears against the panel. These rules are
+  unlayered and !important so they beat that scoped CSS on every palette.
+*/
+.emdash-code pre {
+	background: var(--ctp-mantle) !important;
+	color: var(--ctp-text) !important;
+	border-color: var(--ctp-surface0);
+}
+
+.emdash-code code,
+.emdash-code pre code {
+	color: var(--ctp-text) !important;
+	background: transparent !important;
+}
+
+.emdash-code-filename {
+	color: var(--ctp-text) !important;
+	background: var(--ctp-crust) !important;
+}
+
+.sylee-prose blockquote,
+.newsletter-prose blockquote,
+.page-content blockquote {
+	color: var(--ctp-text);
 }
