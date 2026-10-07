@@ -421,19 +421,38 @@
 
 .newsletter-prose blockquote {
 	margin: 1.5rem 0;
-	border-left: 3px solid var(--ctp-lavender);
+	border-left: 3px solid var(--ctp-blue);
 	background: var(--newsletter-panel);
 	padding: 1rem 1.25rem;
-	color: var(--newsletter-muted);
+	color: var(--newsletter-text);
 }
 
-.newsletter-prose pre {
+.newsletter-prose blockquote p,
+.newsletter-prose blockquote li {
+	color: var(--newsletter-text);
+}
+
+.newsletter-prose pre,
+.newsletter-prose .emdash-code pre {
 	overflow-x: auto;
-	background: var(--newsletter-panel);
+	background: var(--newsletter-panel) !important;
+	color: var(--newsletter-text) !important;
 	border: 1px solid var(--newsletter-border);
+	border-radius: 0;
 	padding: 1.25rem;
 	font-size: 0.875rem;
 	line-height: 1.7;
+}
+
+.newsletter-prose .emdash-code code,
+.newsletter-prose pre code {
+	color: var(--newsletter-text) !important;
+	background: transparent !important;
+}
+
+.newsletter-prose .emdash-code-filename {
+	color: var(--newsletter-muted) !important;
+	background: var(--ctp-crust) !important;
 }
 
 .newsletter-prose :not(pre) > code {

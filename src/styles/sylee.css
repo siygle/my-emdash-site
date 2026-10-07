@@ -197,18 +197,38 @@ body.sylee-page > main {
 .sylee-prose strong { color: var(--ctp-text); }
 .sylee-prose ul, .sylee-prose ol { padding-left: 1.5em; }
 .sylee-prose li::marker { color: var(--ctp-overlay1); }
-.sylee-prose pre {
-  background: var(--ctp-mantle) !important; /* beat inline syntax-theme backgrounds */
-  color: var(--ctp-text);
+.sylee-prose pre,
+.sylee-prose .emdash-code pre {
+  background: var(--ctp-mantle) !important; /* beat EmDash's hardcoded #1e1e1e */
+  color: var(--ctp-text) !important;
   border: 1px solid var(--ctp-surface0);
+  border-radius: 0;
   padding: 1rem 1.25rem;
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.7;
 }
+/* EmDash Code.astro sets code { color: #e0e0e0 }. On light Omarchy palettes that disappears against --ctp-mantle. */
+.sylee-prose .emdash-code code,
+.sylee-prose pre code {
+  color: var(--ctp-text) !important;
+  background: transparent !important;
+}
+.sylee-prose .emdash-code-filename {
+  color: var(--ctp-subtext1) !important;
+  background: var(--ctp-crust) !important;
+}
 .sylee-prose code { font-family: var(--font-ui); font-size: 0.875em; }
 .sylee-prose :not(pre) > code { padding: 0.1em 0.35em; color: var(--ctp-maroon); background: var(--ctp-mantle); border: 1px solid var(--ctp-surface0); }
-.sylee-prose blockquote { margin: 2em 0; padding: 0.75rem 1.25rem; border-left: 3px solid var(--ctp-lavender); background: var(--ctp-mantle); color: var(--ctp-subtext1); }
+.sylee-prose blockquote {
+  margin: 2em 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 3px solid var(--ctp-blue);
+  background: var(--ctp-mantle);
+  color: var(--ctp-text);
+}
+.sylee-prose blockquote p,
+.sylee-prose blockquote li { color: var(--ctp-text); }
 .sylee-prose blockquote p:last-child { margin-bottom: 0; }
 .sylee-prose hr { border: 0; border-top: 1px solid var(--ctp-surface0); margin: 2.5em 0; }
 .sylee-prose img { max-width: 100%; height: auto; }
