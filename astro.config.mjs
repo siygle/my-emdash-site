@@ -20,6 +20,9 @@ export default defineConfig({
 		emdash({
 			database: d1({ binding: "DB", session: "auto" }),
 			storage: r2({ binding: "MEDIA" }),
+			// Deployed Workers never migrate on a request: run `emdash migrate` after deploy
+			// (see docs.emdashcms.com/deployment/core-migrations). Local dev still auto-migrates.
+			migrations: { runtime: "check", dev: "auto" },
 			plugins: [formsPlugin(), socialEmbedsPlugin(), socialCommentsPlugin()],
 			sandboxed: [webhookNotifierPlugin],
 			sandboxRunner: sandbox(),
